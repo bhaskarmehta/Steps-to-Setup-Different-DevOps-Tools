@@ -1,0 +1,40 @@
+Run on Master and Worker Node
+----------------------------
+sudo apt update
+sudo apt install apt-transport-https
+sudo apt install docker.io -y
+sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+ (or)
+nano /etc/apt/sources.list.d/kubernetes.list
+   deb http://apt.kubernetes.io/ kubernetes-xenial main
+sudo apt update
+sudo apt install kubelet=1.24.0-00  kubeadm=1.24.0-00 kubectl=1.24.0-00 kubernetes-cni -y --allow-downgrades
+  (or)
+sudo apt install kubelet  kubeadm kubectl kubernetes-cni -y
+curl -s https://packages.cloud.google.com/apt/dists/kubernetes-xenial/main/binary-amd64/Packages | grep Version | awk '{print $2}'
+
+
+
+Now run on Master Node
+---------------------
+sudo kubeadm init
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+Run on each Worker Node(You will get this after running kubeadm init command on master node)
+-------------------------------------------------------------------------------------------
+kubeadm join 172.31.31.144:6443 --token hxv5sh.ww1yb6rzwcw037kh --discovery-token-ca-cert-hash sha256:167782f6384c69e0d181fecd46496a833ff1d64f86c90c4eb3f5220cba5ad9f4
+
+
+Need to create the subnet.env file at  /run/flannel location on the each  worker nodes   -
+--------------------------------------------------------------------------------------
+1) cd /run/flannel
+2) vi subnet.env
+3) Paste the below content on subnet.env file
+      FLANNEL_NETWORK=10.244.0.0/16
+      FLANNEL_SUBNET=10.244.0.1/24
+      FLANNEL_MTU=1450
+      FLANNEL_IPMASQ=true
