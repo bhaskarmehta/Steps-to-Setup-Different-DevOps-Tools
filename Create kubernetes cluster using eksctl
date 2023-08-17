@@ -35,4 +35,4 @@
     eksctl version
     
 7) Create cluster using eksctl as  - 
-   eksctl create cluster  --name mycluster --version 1.24 --nodegroup-name mygroup --node-type t2.micro --nodes 2 --region ap-south-1
+    eksctl create cluster  --name mycluster --version 1.26 --nodegroup-name mygroup --node-type t2.micro --nodes 2 --region us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d
