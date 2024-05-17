@@ -1,0 +1,22 @@
+Take a ubuntu machime and run the command as  - 
+1) apt update
+2) apt install ansible -y // Here by default /etc/ansible/hosts and /etc/ansible/ansible.cfg is not created
+3) sudo mkdir -p /etc/ansible
+   sudo touch /etc/ansible/ansible.cfg
+   sudo touch /etc/ansible/hosts
+4) In /etc/ansible/ansible.cfg, add
+  [defaults]
+  inventory = /etc/ansible/hosts
+5) In /etc/ansible/hosts, here we are adding all the servers ip address
+  [servers]
+  server1 ansible_host=<p ip address of host>
+  server2
+  .
+  .
+6) Add .pem file at ~/.ssh location. For example ~/.ssh/ansible.pem. // There will be also authorized_key.
+7) To check the connection run the command
+   ansible all -m ping --private-key=~/.ssh/ansible.pem
+8) To create a file on worker or host
+   ansible all -m file -a "path=/file1 state=touch" --private-key=~/.ssh/ansible.pem
+9) Now one file will be created on the host machine
+
