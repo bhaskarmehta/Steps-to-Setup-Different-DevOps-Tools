@@ -20,3 +20,14 @@ Take a ubuntu machime and run the command as  -
    ansible all -m file -a "path=/file1 state=touch" --private-key=~/.ssh/ansible.pem
 9) Now one file will be created on the host machine
 
+This is example to update the system and install docker in it
+- hosts: server1
+  become: yes
+  tasks:
+   - name: Update the system
+     apt:
+       update_cache: yes
+   - name: Installing docker on the server
+     apt:
+       name: docker.io
+       state: present
