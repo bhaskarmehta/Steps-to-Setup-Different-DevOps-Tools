@@ -40,3 +40,22 @@ This is example ansible playbook to update the system and install docker in it
        name: docker.io
        state: present
 To run this on the server  -  ansible-playbook <playbookname> --private-key=<path>
+
+Handlers -Handlers are just like another task but it will run when called by another task (OR)  Handlers in Ansible are just like tasks but they get executed if tasks contains notify and it indicates that it chnaged somethins.
+We can consider it like if condition in other programming language like if this happen then run that block of code.
+Example - 
+- hosts: servers
+  become: yes
+  vars:
+    package: docker.io
+  tasks:
+     - name: Update the system
+       apt:
+         update_cache: yes
+       notify: Install Docker // This is same as handlers name
+  handlers:
+     - name: Install Docker
+       apt:
+          name: "{{package}}"
+          state: present
+  
