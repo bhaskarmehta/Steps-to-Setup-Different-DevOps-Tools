@@ -20,7 +20,15 @@ Take a ubuntu machime and run the command as  -
    ansible all -m file -a "path=/file1 state=touch" --private-key=~/.ssh/ansible.pem
 9) Now one file will be created on the host machine
 
-This is example to update the system and install docker in it
+
+
+Adhoc command -  It is a single line command that is used to performs the tasks. It is used to perform the task temporarily.
+Modules - It is set of command to perform the task on the worker node
+-> These tasks can range from managing packages, services, files, and users to interacting with cloud services, network devices, and more.
+-> Ansible has multiple built in module like apt , user, ec2 etc.
+
+Ansible Playbook -  It is the collection of one or more module that is used to perfom the tasks
+This is example ansible playbook to update the system and install docker in it
 - hosts: server1
   become: yes
   tasks:
@@ -31,3 +39,4 @@ This is example to update the system and install docker in it
      apt:
        name: docker.io
        state: present
+To run this on the server  -  ansible-playbook <playbookname> --private-key=<path>
