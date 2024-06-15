@@ -1,0 +1,35 @@
+pipeline {
+    agent {label 'label1'}
+    environment {
+        dockerImage = ''
+        registry = 'bhasmeht/angular-image'
+        registryCredential = 'dockerhub_cred'
+    }
+    stages {
+        stage('clone repo') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bhaskarmehta/AngularCIJenkins.git']]])
+            }
+        }
+        stage('build image') {
+            steps {
+                script {
+                    // Tag the image with the build number
+                    dockerImage = docker.build("${registry}:${BUILD_NUMBER}")
+                }
+            }
+        }
+        stage('push image to docker hub') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        // Push the image with the build number tag
+                        dockerImage.push()
+                        // Optionally, push the image with the 'latest' tag as well
+                        dockerImage.push('latest')
+                    }
+                }
+            }
+        }
+    }
+}
