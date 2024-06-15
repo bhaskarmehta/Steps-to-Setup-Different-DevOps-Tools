@@ -1,0 +1,257 @@
+// For setting webhook in jenkins and github, go to github and then webhook and add webhook and in payload add the <url of jenkins>/github-webhook/
+// And in Jenkins,  check Trigger web for scmpolling
+
+
+Jenkins Installation  - By default 50000 port used to connect with the agent or slave in jenkins
+------------------------------
+docker run -u 0 --privileged --name jenkins -it -d -p 8080:8080 -p 50000:50000 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v $(which docker):/usr/bin/docker \
+-v /home/jenkins_home:/var/jenkins_home \
+jenkins/jenkins:latest
+
+docker run -u 0 --privileged --name jenkins1 -it -d -p 8081:8080 -p 50001:50000 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v $(which docker):/usr/bin/docker \
+-v /home/jenkins_home:/var/jenkins_home \
+jenkins/jenkins:latest
+
+pipeline {
+    agent {label 'label1'}
+    environment {
+        dockerImage = ''
+        registry = 'bhasmeht/angular-image'
+        registryCredential = 'dockerhub_cred'
+    }
+    stages {
+        stage('clone repo') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bhaskarmehta/AngularCIJenkins.git']]])
+            }
+        }
+        stage('build image') {
+            steps {
+                script {
+                    // Tag the image with the build number
+                    dockerImage = docker.build("${registry}:${BUILD_NUMBER}")
+                }
+            }
+        }
+        stage('push image to docker hub') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        // Push the image with the build number tag
+                        dockerImage.push()
+                        // Optionally, push the image with the 'latest' tag as well
+                        dockerImage.push('latest')
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+java -version
+curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo tee \   /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \   https://pkg.jenkins.io/debian binary/ | sudo tee \ /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+
+vi /usr/lib/systemd/system/docker.service - Docker port
+
+tcp://0.0.0.0:4243
+ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock
+systemctl daemon-reload
+systemctl restart docker
+
+(Or) Add this to a pipeline and configue docker in tools
+stage('Initialize') {
+            steps {
+                script {
+                    def dockerHome = tool 'myDocker'
+                    env.PATH = "${dockerHome}/bin:${env.PATH}"
+                }
+            }
+        }
+
+-------------------------
+pipeline{
+    agent any
+    environment{
+        dockerCred = "dockerhub_id"
+    }
+    
+    stages{
+        stage("Git Checkout")
+        {
+            steps
+            {
+              git branch:"main",url:"https://github.com/bhaskarmehta/CIUsingArgoCD.git"
+            }
+        }
+        stage("Docker build")
+        {
+            steps{
+                script{
+                    sh "docker build -t bhasmeht/mytestimage ."
+                    
+                }
+            }
+        }
+        
+        stage("Docker push"){
+            steps {
+               withDockerRegistry([ credentialsId: "dockerhub_id", url: "" ]) {
+              // following commands will be executed within logged docker registry
+              sh 'docker push bhasmeht/mytestimage'
+            }
+}
+        }
+    }
+}
+------------------
+
+
+docker run -d b0f117a7a48f
+
+
+git clone in jenkins pipeline  -
+------------
+ checkout([$class: 'GitSCM', branches: [[name: '*/branchname']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'jenkins-user-github', url: 'https://github.com/aakashsehgal/FMU.git']]])
+
+Passsword Path on Ubuntu - /var/jenkins_home/secrets/initialAdminPassword
+
+
+
+
+pipeline{
+    agent any or agent {label 'dev'}
+    environment{
+        dockerImage=''
+        registry='bhasmeht/image1'
+        registryCredential='dockerhub_id'
+    }
+    stages{
+        stage('clone repo'){
+            steps{
+              checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/bhaskarmehta/test2.git']]])  
+            }
+        }
+        stage('build image'){
+            steps{
+                script{
+                    dockerImage = docker.build registry
+                }
+            }
+        }
+        stage('stop the running container'){
+            steps{
+                sh 'docker stop  mycontainer | xargs --no-run-if-empty'
+                sh 'docker rm mycontainer | xargs -r'
+            }
+        }
+        stage('run image'){
+            steps{
+                script{
+                    dockerImage.run("-p 82:80 --name mycontainer")
+                }
+            }
+        }
+        stage('push image to docker hub'){
+            steps{
+                script{
+                    docker.withRegistry('',registryCredential){
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+Note -
+---------
+1) For adding the Docker path to the jenkins server
+ i) Install the docker plugin and now go to manage cloud and select the docker as cloud.
+ ii) On the pattern enter the "tcp://<ip address of node>:<docker ip addess>"
+
+2) For adding the Docker Hub credentials, go to manage jenkins and then go to manage credentials and then System and then 
+   Global Credentials and then add credentials . In Username give the username and credentials of the Docker Hub.
+
+Jenkins
+--------
+Backup in Jenkins - The purpose of backup is to create the copy of data that can be recovered in case of primary data failure.
+Reason of primary data failure may be H/W or S/w failure or any human interruption.
+ 
+Types of BackUp -
+---------------------
+1) Full BackUp
+2) Differential Backup
+3) Incremental Backup
+
+-> For taking the backup of jenkins
+1) Download the ThinBackUp plugin from manage jenkins
+2) In the manage Jenkins Go to Thin Backup plugin
+3) Then in setting, mention the backup directory- /var/jenkins_home/backup and save
+4) Click on Backup now
+
+Not Done in Jenkins
+--------------------
+1) How to move jenkins from one server to another in case of migration.
+2) How do we pass parameter in Jenkins
+
+Multi Branch Pipeline -
+------------------------
+It used to handle the all branch of the repository.And make different pipeline for each branch.
+
+Create a job and select the Multibranch pipeline and mention the github repo.
+
+Note - Here we can set up Cron Job, in which we can define the peroid in which backup will be taken
+       And we can also set how many backup file will be stored at a time in Max number of backup sets tab.
+
+
+2) How to create master slave architecture in jenkins 
+Ans - Manage Node and Clouds
+      Download java and docker on the Slave
+      Add the Slave Private ip Address on the host 
+     No the remote root directory = /home/ubuntu
+     In Launch Method, choose launch via SSH
+     Add SSH key credentials  -  ssh with private key and username is ubuntu
+     Host key vaerification = manually trusted key
+
+
+
+pipeline {
+    agent {label 'jenkinsnode'}   // For running the job on the Particular Job
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+}
+
+
+Jenkins build with parameter - Go to syntax pipeline and select properties and mention the parameters names and values and get the url and paste in the pipeline
+There is a tab which is "This project is parameterized" where we can use our parameter.
+-----------------------------
+properties([parameters([choice(choices: ['master', 'dev', 'feature'], description: 'Based on the choices , Select the Branch', name: 'branch')])])
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                echo "Pulling the changes from the branch ${params.branch}"  // We can also access the parameter value as ${branch}
+                git url: 'https://github.com/bhaskarmehta/gittest.git', branch:"${params.branch}"
+            }
+        }
+    }
+}
