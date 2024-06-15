@@ -1,0 +1,170 @@
+Steps to Install EBS CSI Driver For SC, PVC and PV Medium link followed - https://medium.com/@tolghn/managing-storage-with-aws-ebs-csi-driver-on-amazon-eks-5eb65978af67
+---------------------------------------------------------
+
+1) Create a json file for policy as
+
+ebs_csi_policy.json
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVolume",
+        "ec2:AttachVolume",
+        "ec2:DetachVolume",
+        "ec2:DeleteVolume",
+        "ec2:CreateSnapshot",
+        "ec2:DeleteSnapshot",
+        "ec2:DescribeVolumes",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeInstances",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeVolumeStatus",
+        "ec2:DescribeVolumeAttribute",
+        "ec2:DescribeSnapshotAttribute",
+        "ec2:DescribeInstanceAttribute",
+        "ec2:DescribeInstanceCreditSpecifications",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeVpcs",
+        "ec2:ModifyVolume",
+        "ec2:ModifyVolumeAttribute",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:CreateTags",
+      "Resource": "*"
+    }
+  ]
+}
+
+2) Run this command
+  i) First run this command
+  aws iam create-policy \
+    --policy-name AmazonEKS_EBS_CSI_Driver_Policy \
+    --policy-document file://ebs_csi_policy.json
+
+
+  ii) If Above command does not work then run this
+ aws iam create-policy-version \
+    --policy-arn arn:aws:iam::<Account Id>:policy/AmazonEKS_EBS_CSI_Driver_Policy \
+    --policy-document file://ebs_csi_policy.json \
+    --set-as-default
+
+
+3) Attach the Policy to the EKS Node Role
+   aws iam attach-role-policy \
+    --policy-arn arn:aws:iam::629884197199:policy/AmazonEKS_EBS_CSI_Driver_Policy \
+    --role-name eksctl-mycluster-nodegroup-mygroup-NodeInstanceRole-9H7248xriuQP.// For finding EKS_NODE_ROLE_NAME go to any of the node of eks cluster in ec2 and find the role name
+
+4) Install helm on ubuntu machine
+   curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+   sudo apt-get install apt-transport-https --yes
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-    debian.list
+   sudo apt-get update
+   sudo apt-get install helm
+
+5) Installing the EBS CSI Driver with Helm
+   helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver/
+   helm repo update
+
+6) Install the EBS CSI Driver
+   helm install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver \
+    --namespace kube-system \
+    --set enableVolumeScheduling=true \
+    --set enableVolumeResizing=true \
+    --set enableVolumeSnapshot=true
+
+7)  Verifying the Installation
+   kubectl get pods -n kube-system | grep ebs-csi
+
+8) Verify by running sc, pvc and pod
+
+sc.yaml
+---------
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+        storageclass.kubernetes.io/is-default-class: "false"
+  name: mysc
+parameters:
+  fsType: ext4
+  type: gp2
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+
+pvc.yaml
+----------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: gp2
+
+pod.yaml
+---------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: myfrontend
+      image: nginx
+      volumeMounts:
+      - mountPath: "/var/www/html"
+        name: mypd
+  volumes:
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: myclaim
+
+
+To attach the volume created by pv with an ec2 instance
+--------------------------------------------------------
+Step 1: Attach EBS Volume to EC2 Instance
+        Identify the EBS Volume: Note down the EBS volume ID from the AWS Management Console or CLI.
+
+      Attach the Volume:
+
+    Go to the AWS Management Console.
+    Navigate to EC2 > Volumes.
+    Find your EBS volume and select it.
+    Click Actions > Attach Volume.
+    Select your EC2 instance from the list and confirm the attachment.
+
+Step2 -  Connect the ec2 instance
+Step3 - 
+   Run - 1) lsblk
+         2) sudo mkdir /mnt/data
+         3) sudo mount /dev/xvdf /mnt/data
+         4) cd /mnt/data
+         5) ls - To verify the data
+
+
+Step 4: Automate Mount on Boot (Optional)
+Update /etc/fstab: To ensure your EBS volume is mounted automatically upon instance reboot, you can add an entry to /etc/fstab. First, get the UUID of your EBS volume:
+sudo blkid /dev/xvdf
+Copy the UUID (e.g., UUID="12345678-1234-1234-1234-123456789abc").
+
+Edit /etc/fstab: Open /etc/fstab in a text editor (with sudo), and add a line similar to this (replace placeholders with your actual UUID and mount point):
+
+UUID=12345678-1234-1234-1234-123456789abc /mnt/data ext4 defaults,nofail 0 2
+Save and close the file.
+
+Test Mounting: Test if the volume mounts correctly by running:
+
+bash
+Copy code
+sudo mount -a
+Now your EBS volume should be mounted and accessible on your EC2 instance. You can store and retrieve data from /mnt/data (or whichever mount point you chose). Remember to unmount the volume (sudo umount /mnt/data) before detaching it from the instance in the AWS Management Console if you no longer need it attached.
+   
