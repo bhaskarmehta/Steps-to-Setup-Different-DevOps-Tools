@@ -1,0 +1,189 @@
+GET _cat/indices -  To get all the indexes that we have
+
+Name of index is learn
+GET <name of index>/_search -  To get all the data of particular index
+
+GET learn/_doc/<id> - To find the particular docs with id
+
+POST test/_bulk   ----------To add the data in index
+{"index":{"_id":"3"}}
+{"firstname":"Bhaskar","lastname":"Mehta","branch":"CSE"}
+{"index":{"_id":"4"}}
+{"firstname":"Raj","lastname":"Mathur","branch":"Mech"}
+
+------------------- We can add single data through this also
+PUT test2
+PUT test2/_doc/1
+{"name":"Bhaskar Mehta"}
+
+GET test2/_doc/1
+-----------------
+
+GET test/_search    - To find output based on some condition. Should - OR, Must- AND, MUST NOT - NOT, FILTER - Filter
+{
+  "_source": ["firstname"],
+  "size": 2,
+  "query": {
+    "bool": {
+      "should": [
+        {"match": {
+          "firstname": "Raj"
+        }}
+      ]
+    }
+  }
+}
+
+
+GET test/_search  --- AND OPerator
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"match": {
+          "firstname": "Raj"
+        }
+        },
+        {"match": {
+          "lastname": "Mehta"
+        }
+        }
+      ]
+    }
+  }
+}
+
+
+GET test/_search   -- Nested Query
+{
+  "_source": ["title"]
+  , "query": {
+    "bool": {
+      "should": [
+        {"match": {
+          "fistname": "Bhaskar"
+        }},
+        {"match": {
+          "CollegeName": "STMARY"
+        }}
+      ],
+      "must_not": [
+        {
+          "bool": {
+            "should": [
+              {"match": {
+                "title": "Ground"
+              }},
+              {"match": {
+                "title": "Education"
+              }}
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+
+Add Alias in ES--------
+POST /_aliases
+{
+  "actions": [
+    {
+      "add": {
+        "index": "test2",
+        "alias": "alias2"
+      }
+    }
+  ]
+}
+GET alias2/_search
+
+Remove aliase in ES
+--------------------
+POST /_aliases
+{
+  "actions": [
+    {
+      "remove": {
+        "index": "test2",
+        "alias": "alias2"
+      }
+    }
+  ]
+}
+
+Mapping - 
+----------
+In Elasticsearch, mapping refers to the process of defining how documents and their fields are stored and indexed within an index. It defines the data structure, including the various data types, properties, and settings associated with the fields in your documents. Mapping determines how Elasticsearch interprets the data and how it should be indexed for efficient search and retrieval.
+
+Note - If we do not provide mapping for the index then by default all type will be of text
+
+To create mapping at the time of index creation
+------------------------------------------------
+PUT my_map
+{
+  "mappings":{
+   "properties":{
+   "title":{"type":"text"},
+   "name":{"type":"text"},
+   "published year":{"type":"integer"}
+}
+}
+}
+
+To create mapping for the already created index
+--------------------------------------------------
+POST my_mapping/_mappings
+{
+  "properties":{
+   "title":{"type":"text"},
+   "name":{"type":"text"},
+   "published year":{"type":"integer"}
+}
+}
+
+To check mapping associated with index
+--------------------------------------
+GET my_mapping/_mappings
+
+
+To Add the any field in the index
+--------------------------------
+
+POST test/_update/<id>
+{
+  "script": "ctx._source.<KEY>='<VALUE>'"
+}
+
+To remove the field in index
+-------------------------------
+POST test/_update/<id>
+{
+ "script":"ctx._source.remove('<key>')"
+}
+
+To update the particular field values of the document
+-----------------------------------------------------
+POST test/_update/<id>
+{
+  "doc":{
+    "<key>: <New Values that want to add>"
+}
+}
+
+Ex - POST test/_update/5
+{
+  "doc": {
+    "title":"Collage Information"
+  }
+}
+
+Analyzer  -  An analyzer is a crucial component of the indexing process responsible for breaking down textual data into individual terms or tokens, which are then indexed for efficient search operations. It consists of three main parts: character filters, tokenizers, and token filters.
+
+Standard Analyzer: It tokenizes text using a standard tokenizer, applies a lowercase filter, and removes common English stop words.
+Whitespace Analyzer: Splits text into tokens whenever it encounters whitespace.
+Simple Analyzer: Splits text into tokens on non-alphabetic characters and converts tokens to lowercase.
+Custom Analyzers: Users can create custom analyzers by combining various character filters, tokenizers, and token filters to suit specific language, content, or search needs.
