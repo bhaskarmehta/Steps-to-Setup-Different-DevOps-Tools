@@ -95,5 +95,15 @@ Step 3: Configure Storage Class, Persistent Volume (PV), and Persistent Volume C
         persistentVolumeClaim:
           claimName: efs-pvc
 
+To access the data of nfs storage into EC2 instance.
+------------------------------------
+Note -  NFS storage and The EC2 instance must be in same region and the sg of NFS should allow the traffic from 2049 port.
 
+Now run the command as -
+ 1) sudo apt update
+ 2) sudo apt -y install nfs-common
+ 3) mkdir efs
+ 4) sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-xyz.efs.us-west-1.amazonaws.com:/ efs
+ 5) cd efs
+ 6) ls // Here we will get the data of efs
 
