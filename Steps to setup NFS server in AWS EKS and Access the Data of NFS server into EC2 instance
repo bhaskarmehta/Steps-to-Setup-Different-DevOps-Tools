@@ -1,0 +1,99 @@
+To store data on the AWS cloud using a shared storage system for your EKS cluster, Amazon EFS (Elastic File System) is a great option. It provides a fully managed, scalable,
+and shared NFS file system that can be easily integrated with EKS. Here’s how you can set up Amazon EFS with your EKS cluster.
+
+Step 1: Create an Amazon EFS File System
+    Create EFS File System:
+
+    1) Open the Amazon EFS console.
+      Click on "Create file system."
+      Add vpc where eks cluster is running
+    2) Security Groups:
+      Ensure the security group associated with your EFS mount targets allows inbound NFS traffic (port 2049) from the security group of your EKS nodes. We can find the security group associated with nfs server
+      by clickig on the server and go to network section.
+
+Step 2: Install EFS CSI Driver in EKS
+The EFS CSI (Container Storage Interface) driver allows Kubernetes to manage EFS volumes.
+
+   Install EFS CSI Driver:
+   Use Helm to install the EFS CSI driver:
+   1) Install Helm on the Machine - 
+      curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+      sudo apt-get install apt-transport-https --yes
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+      sudo apt-get update
+      sudo apt-get install helm
+   2) helm repo add aws-efs-csi-driver https://kubernetes-sigs.github.io/aws-efs-csi-driver/
+      helm repo update
+      kubectl create namespace kube-system
+      helm install aws-efs-csi-driver aws-efs-csi-driver/aws-efs-csi-driver --namespace kube-system
+
+     Verify EFS is installed ot not - kubectl get pods -n kube-system | grep efs
+
+   3) Go to IAM service and Add AmazonEFSCSIDriverPolicy policy with the role attached with the EKS worker node.
+   4) Ensure the security group for your EFS mount targets allows inbound NFS traffic on port 2049 from the security groups of your EKS nodes.
+
+Step 3: Configure Storage Class, Persistent Volume (PV), and Persistent Volume Claim (PVC)
+1) sc.yaml
+   apiVersion: storage.k8s.io/v1
+   kind: StorageClass
+   metadata:
+      name: efs-sc
+   provisioner: efs.csi.aws.com
+2) pv.yaml
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+   name: efs-pv
+  spec:
+    capacity:
+      storage: 5Gi
+    volumeMode: Filesystem
+    accessModes:
+     - ReadWriteMany
+    persistentVolumeReclaimPolicy: Retain
+    storageClassName: efs-sc
+    csi:
+      driver: efs.csi.aws.com
+      volumeHandle: fs-<your-efs-filesystem-id>
+
+3) pvc.yaml
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+    name: efs-pvc
+   spec:
+    accessModes:
+     - ReadWriteMany
+    storageClassName: efs-sc
+    resources:
+     requests:
+      storage: 5Gi
+
+4) deployment.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+   name: my-deployment
+  spec:
+   replicas: 3
+   selector:
+    matchLabels:
+      app: my-app
+   template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-container
+        image: nginx
+        volumeMounts:
+        - mountPath: /data
+          name: efs-storage
+      volumes:
+      - name: efs-storage
+        persistentVolumeClaim:
+          claimName: efs-pvc
+
+
+
