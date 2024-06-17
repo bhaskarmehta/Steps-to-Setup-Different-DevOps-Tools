@@ -107,3 +107,9 @@ Now run the command as -
  5) cd efs
  6) ls // Here we will get the data of efs
 
+7) After the above step, EFS is mounted. It won’t be mounted automatically whenever we reboot EC2. Next steps will mount it automatically on EC2 whenever we reboot EC2.
+
+8) On the same EC2, run sudo nano /etc/fstab
+
+9) Add the following line to /etc/fstab file (don’t change the middle nfs name. If we use amazon-efs-utils, it will be efs. Since we are using nfs-common in step 11, it should be nfs (It’s a file type and not a mount point. Mount point is my_efs only).
+fs-xyz.efs.us-west-1.amazonaws.com:/ /opt/my_efs nfs defaults,_netdev 0 0
