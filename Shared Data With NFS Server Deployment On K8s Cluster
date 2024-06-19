@@ -1,0 +1,147 @@
+1) Create a pvpvc.yaml
+-------------------------
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ebs-pv
+spec:
+  capacity:
+    storage: 7Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  awsElasticBlockStore:
+    volumeID: vol-07fa5ebb39155212d
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""    
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: ebs-pv
+
+2) Create nfs-server-deployment.yaml
+------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  labels:
+    app: nfs-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+      - name: nfs-server
+        image: gcr.io/google_containers/volume-nfs:0.8
+        ports:
+        - name: nfs
+          containerPort: 2049
+          protocol: TCP
+        - name: mountd
+          containerPort: 20048
+          protocol: TCP
+        - name: rpcbind
+          containerPort: 111
+          protocol: TCP
+        - name: rpcbind-udp
+          containerPort: 111
+          protocol: UDP
+        securityContext:
+          privileged: true
+        env:
+        - name: SHARED_DIRECTORY
+          value: /exports
+        volumeMounts:
+        - name: ebs-storage
+          mountPath: /exports
+      volumes:
+      - name: ebs-storage
+        persistentVolumeClaim:
+          claimName: ebs-pvc
+
+3) Create a nfs-server-service.yaml
+---------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: nfs-server
+spec:
+  selector:
+    app: nfs-server
+  ports:
+    - protocol: TCP
+      port: 2049
+      targetPort: 2049
+
+4) Create a nfs-pv.yaml
+--------------------------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv
+spec:
+  capacity:
+    storage: 7Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.34.241 // IP addresss of nfs-server
+    path: "/exports"
+
+5) Create a nfs-pvc.yaml
+---------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""    
+  resources:
+    requests:
+      storage: 5Gi
+
+6) Create a nfs-client-deployment.yaml
+-----------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-client
+  template:
+    metadata:
+      labels:
+        app: nfs-client
+    spec:
+      containers:
+      - name: app
+        image: nginx
+        volumeMounts:
+        - name: nfs-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: nfs-storage
+        persistentVolumeClaim:
+          claimName: nfs-pvc
