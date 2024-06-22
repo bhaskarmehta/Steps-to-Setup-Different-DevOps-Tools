@@ -102,7 +102,7 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    server: 192.168.34.241 // IP addresss of nfs-server
+    server: 192.168.34.241 // # Use the IP address of the NFS server pod
     path: "/exports"
 
 5) Create a nfs-pvc.yaml
