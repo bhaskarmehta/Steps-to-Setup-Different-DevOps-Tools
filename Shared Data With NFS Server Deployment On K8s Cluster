@@ -75,6 +75,53 @@ spec:
         persistentVolumeClaim:
           claimName: ebs-pvc
 
+(or attach pd direct)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  labels:
+    app: nfs-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+      - name: nfs-server
+        image: gcr.io/google_containers/volume-nfs:0.8
+        ports:
+        - name: nfs
+          containerPort: 2049
+          protocol: TCP
+        - name: mountd
+          containerPort: 20048
+          protocol: TCP
+        - name: rpcbind
+          containerPort: 111
+          protocol: TCP
+        - name: rpcbind-udp
+          containerPort: 111
+          protocol: UDP
+        securityContext:
+          privileged: true
+        env:
+        - name: SHARED_DIRECTORY
+          value: /exports
+        volumeMounts:
+        - name: gcp-storage
+          mountPath: /exports
+      volumes:
+      - name: gcp-storage
+        gcePersistentDisk:
+          pdName: disk-test3
+          fsType: ext4
+
 3) Create a nfs-server-service.yaml
 ---------------------------------------
 apiVersion: v1
@@ -88,6 +135,33 @@ spec:
     - protocol: TCP
       port: 2049
       targetPort: 2049
+
+(or worked as expected)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nfs-server
+spec:
+  selector:
+    app: nfs-server 
+  ports: 
+    - name: nfs
+      protocol: TCP
+      port: 2049
+      targetPort: 2049   
+    - name: mountd
+      protocol: TCP
+      port: 20048
+      targetPort: 20048
+    - name: rpcbind
+      protocol: TCP
+      port: 111
+      targetPort: 111
+    - name: rpcbind-udp
+      protocol: UDP
+      port: 111
+      targetPort: 111
+
 
 4) Create a nfs-pv.yaml
 --------------------------
