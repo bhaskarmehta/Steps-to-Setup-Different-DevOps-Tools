@@ -219,3 +219,30 @@ spec:
       - name: nfs-storage
         persistentVolumeClaim:
           claimName: nfs-pvc
+
+(or without pv and pvc direct use nfs-service name dns)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nfs-client
+  template:
+    metadata:
+      labels:
+        app: nfs-client
+    spec:
+      containers:
+      - name: app
+        image: nginx
+        volumeMounts:
+        - name: nfs-storage
+          mountPath: /data
+      volumes:
+      - name: nfs-storage
+        nfs:
+          server: nfs-server.default.svc.cluster.local
+          path: "/exports"
