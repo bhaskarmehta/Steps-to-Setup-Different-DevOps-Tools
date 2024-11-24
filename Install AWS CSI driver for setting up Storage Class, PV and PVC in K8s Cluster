@@ -32,11 +32,13 @@ ebs_csi_policy.json
         "ec2:ModifyVolume",
         "ec2:ModifyVolumeAttribute",
         "ec2:ModifyInstanceAttribute",
-        "ec2:CreateTags",
+        "ec2:CreateTags"
+      ],
       "Resource": "*"
     }
   ]
 }
+
 
 2) Run this command
   i) First run this command
