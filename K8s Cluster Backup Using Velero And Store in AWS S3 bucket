@@ -1,3 +1,5 @@
+Refer Velero Documentation for Provider Plugin and its compatibility with velero  - https://velero.io/plugins/
+
 # Install Configure Velero on K8s cluster
 
 1) wget https://github.com/vmware-tanzu/velero/releases/download/v1.15.0/velero-v1.15.0-linux-amd64.tar.gz
