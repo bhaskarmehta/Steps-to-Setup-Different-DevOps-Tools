@@ -1,0 +1,31 @@
+# Install Configure Velero on K8s cluster
+
+1) wget https://github.com/vmware-tanzu/velero/releases/download/v1.15.0/velero-v1.15.0-linux-amd64.tar.gz
+2) tar -xvf velero-v1.15.0-linux-amd64.tar.gz
+3) sudo mv velero-v1.15.0-linux-amd64/velero /usr/local/bin/velero
+4) velero version
+
+# Install Velero On K8s Cluster
+5) velero install \
+    --provider aws \
+    --plugins velero/velero-plugin-for-aws:v1.11.0 \
+    --bucket awseksbackup012 \
+    --backup-location-config region=ap-south-1 \
+    --snapshot-location-config region=ap-south-1 \
+    --secret-file ./credentials
+
+# Verify the Installation
+6) kubectl get deployment/velero --namespace velero
+
+# Verify the backup location
+7) velero backup-location get
+
+# Create the backup
+8) velero create backup mybackup  (It will take backup of all the resources of the cluster of all namespaces. We can take backup of specific namespace or resources as well.)
+
+# Verify Backup
+9) velero backup describe mybackup
+
+# Take details of backuped resources
+10) velero backup describe kind-backup-new --details
+
