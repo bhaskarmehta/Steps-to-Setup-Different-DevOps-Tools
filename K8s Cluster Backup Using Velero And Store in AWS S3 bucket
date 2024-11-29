@@ -31,3 +31,7 @@ Refer Velero Documentation for Provider Plugin and its compatibility with velero
 # Take details of backuped resources
 10) velero backup describe kind-backup-new --details
 
+
+# Restore the backup to the cluster
+11) velero restore create --from-backup mybackup(backup name)  # Now we can see all the resources of the cluster.
+
