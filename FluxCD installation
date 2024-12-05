@@ -1,0 +1,10 @@
+
+curl -s https://fluxcd.io/install.sh | sudo bash
+
+flux bootstrap gitlab \
+  --deploy-token-auth \
+  --owner=bhaskar682142 \
+  --repository=angular-ci \
+  --branch=main \
+  --path=clusters/my-cluster \
+  --personal
