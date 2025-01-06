@@ -1,0 +1,82 @@
+Steps
+-----
+1) Install MongoDB on the Server  - https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+Check - cat /etc/lsb-release and based on this, install mongoDB
+-------------------------------
+1) sudo apt-get install gnupg curl
+2) curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
+   --dearmor
+3) echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+4) sudo apt-get update
+5) sudo apt-get install -y mongodb-org=8.0.4 mongodb-org-database=8.0.4 mongodb-org-server=8.0.4 mongodb-mongosh mongodb-org-mongos=8.0.4 mongodb-org-tools=8.0.4
+6) sudo systemctl start mongod
+7) sudo systemctl daemon-reload
+8) sudo systemctl status mongod
+9) sudo systemctl enable mongod
+10) sudo systemctl stop mongod
+11) sudo systemctl restart mongod
+12) mongosh
+
+
+2) Install pritunl on the server
+---------------------------------
+1) sudo apt update && sudo apt upgrade -y
+2) wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1-udeb_1.1.1-1ubuntu2.1~18.04.23_amd64.udeb
+3) sudo dpkg -i libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb
+4) wget http://archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb
+5) sudo dpkg -i libffi7_3.3-4_amd64.deb
+6) sudo apt-get -f install
+7) sudo apt install pritunl -y
+8) sudo systemctl start pritunl
+9) sudo systemctl enable pritunl
+10) sudo systemctl status pritunl
+
+
+3) Access The Pritunel UI - https://<your-EC2-public-IP>
+
+4) Set Up Pritunl
+-----------------
+1) sudo pritunl setup-key
+2) sudo pritunl default-password
+
+
+5) Create The VPN Server
+---------------------------
+1) Create an organization and add users.
+2)  Create a VPN Server - 
+    1) Navigate to the "Servers" tab in the Pritunl web interface.
+    2) Click "Add Server"
+    3) Name: Provide a name for your server (e.g., MyVPNServer).
+    4) Fill the information or leave it default
+
+6) Final Steps
+-----------------
+1) After updating these fields, click "Add" to create the server.
+2) Once created, attach your organization to the server and start it.
+3) Download user profiles and test the VPN connection.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
