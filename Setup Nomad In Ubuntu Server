@@ -3,7 +3,7 @@ Install Docker
 apt update
 apt install docker.io -y
 
-Install Nomad  - https://developer.hashicorp.com/nomad/tutorials/get-started/gs-install
+Install Nomad  - https://developer.hashicorp.com/nomad/tutorials/get-started/gs-install,  https://dev.to/thenjdevopsguy/quickstart-getting-started-with-hashicorp-nomad-2f30
 -------------
 1) curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 2) sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
