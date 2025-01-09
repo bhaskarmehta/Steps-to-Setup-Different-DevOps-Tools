@@ -1,0 +1,40 @@
+Install Docker 
+---------------
+apt update
+apt install docker.io -y
+
+Install Nomad  - https://developer.hashicorp.com/nomad/tutorials/get-started/gs-install
+-------------
+1) curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+2) sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+3) sudo apt-get update && sudo apt-get install nomad
+4) curl -L -o cni-plugins.tgz https://github.com/containernetworking/plugins/releases/download/v1.0.1/cni-plugins-linux-amd64-v1.0.1.tgz
+5) sudo mkdir -p /opt/cni/bin
+6) sudo tar -C /opt/cni/bin -xzf cni-plugins.tgz
+7) sudo nomad agent -dev -bind 0.0.0.0 -log-level INFO
+
+Now open the UI at <ip>:4646/ui
+-------------------------------
+
+Configure the Job
+-----------------
+job "httpnginx" {
+  datacenters = ["dc1"]
+  group "echo" {
+    network {
+      mode = "bridge"
+      port "http" {
+        static = 8080
+        to = 80
+      }
+    }
+    count = 2
+    task "server" {
+      driver = "docker"
+      config {
+        image = "nginx"
+        ports = ["http"]
+      }
+    }
+  }
+}
