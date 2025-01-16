@@ -1,0 +1,56 @@
+
+To take base backup of the postgresql database - pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1
+
+
+To run the above command without promting password - 
+---------------------------------------------------
+1) nano ~/.pgpass
+2) 127.0.0.1:5432:*:postgres:your_password
+3) chmod 0600 ~/.pgpass
+
+30 19 * * * pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1 >> /var/log/pg_basebackup.log 2>&1
+
+pg_basebackup -D /backup_data/$(date +\%F_\%T) -Ft -z -P -U postgres -h 127.0.0.1 >> /var/log/pg_basebackup_$(date +\%F).log 2>&1
+
+sudo chown postgres:postgres /var/lib/postgresql/.pgpass
+
+
+Restore the Backed Up Data into Another Server
+---------------------------------------------
+Database version must be same in which version it has been backed up
+
+
+For version 12
+----------------
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+sudo apt update
+sudo apt install postgresql-12
+
+psql --version
+
+sudo systemctl stop postgresql
+
+In the postgresql.conf change the data directory as data_directory = "/data"
+
+sudo mkdir -p /data
+sudo chown -R postgres:postgres /data
+sudo chmod 700 /data
+
+And run these
+--------------
+sudo tar -xzf /tar file location/base.tar.gz -C /data/
+
+sudo mkdir -p /data/pg_wal
+sudo tar -xzf /tar file location/pg_wal.tar.gz -C /data/pg_wal/
+
+sudo chown -R postgres:postgres /data
+sudo chmod 700 /data
+
+sudo systemctl start postgresql
+
+Verify restoration
+--------------------
+sudo -u postgres psql
+\l
