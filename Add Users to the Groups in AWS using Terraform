@@ -40,6 +40,13 @@ resource "aws_iam_group_policy_attachment" "this" {
   policy_arn = var.policy_arn
 }
 
+# Step 5: Attach multiple policies to the group dynamically
+resource "aws_iam_group_policy_attachment" "this" {
+  for_each  = toset(var.policy_arns)
+  group     = aws_iam_group.this.name
+  policy_arn = each.value
+}
+
 
 variables.tf
 -----------------
@@ -55,7 +62,7 @@ variable "user_names" {
 
 variable "policy_arn" {
   description = "The ARN of the IAM policy to attach to the group"
-  type        = string
+  type        = list(string)
 }
 
 
@@ -71,5 +78,16 @@ inputs = {
   group_name = "dev-group"
   user_names = ["user1", "user2"]
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+For multiple Policies
+--------------------------
+inputs = {
+  group_name = "dev-group"
+  user_names = ["user1", "user2"]
+  policy_arn = [
+                "arn:aws:iam::aws:policy/AdministratorAccess",
+                 "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+              ]
 }
 
