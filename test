@@ -189,3 +189,46 @@ resource "aws_iam_group_policy_attachment" "group_assume_role_attachment" {
 
 # Step 7: Get AWS account ID dynamically
 data "aws_caller_identity" "current" {}
+
+
+
+directory-structure
+-----------------------------
+t-aws-iam/dev# ls
+terragrunt.hcl
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam/dev# cd ..
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam# ls
+aws-iam-group-module  dev  root.hcl
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam# cat root.hcl
+terraform {
+  source = "../aws-iam-group-module"
+}
+
+inputs = {
+  group_name = "default-group"
+  user_names = []
+
+}
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam# cd dev/
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam/dev# ls
+terragrunt.hcl
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam/dev# cat terragrunt.hcl
+include {
+  path = find_in_parent_folders("root.hcl")
+}
+
+#terraform {
+ #  source = "/home/ubuntu/terragrunt-aws-iam/aws-iam-group-module"
+#}
+
+inputs = {
+  group_name  = "dev-group"
+  user_names  = ["bhaskar", "Devops-yash"]
+  policy_arns = [
+    "arn:aws:iam::aws:policy/AdministratorAccess",
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  ]
+  role_name   = "dev-role"
+}
+root@ip-172-31-30-209:/home/ubuntu/terragrunt-aws-iam/dev#
+
