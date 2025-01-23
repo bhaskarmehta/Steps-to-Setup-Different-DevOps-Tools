@@ -214,3 +214,17 @@ inputs = {
   role_name   = "dev-role"
 }
 
+
+
+root.hcl
+--------------
+
+terraform {
+  source = "../aws-iam-group-module"
+}
+
+inputs = {
+  group_name = "default-group"
+  user_names = []
+  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"  # Default value to avoid empty
+}
