@@ -101,3 +101,116 @@ inputs = {
               ]
 }
 
+
+
+Attaching role to group
+-------------------------
+
+variable.tf
+-------------------
+variable "group_name" {
+  description = "Name of the IAM group"
+  type        = string
+}
+
+variable "user_names" {
+  description = "List of IAM users to add to the group"
+  type        = list(string)
+}
+
+variable "policy_arns" {
+  description = "List of IAM policy ARNs to attach to the role"
+  type        = list(string)
+}
+
+variable "role_name" {
+  description = "Name of the IAM role"
+  type        = string
+}
+
+
+main.tf
+---------
+
+# Step 1: Create IAM group
+resource "aws_iam_group" "this" {
+  name = var.group_name
+}
+
+# Step 2: Create IAM users if they don't exist and add them to the group
+resource "aws_iam_user" "this" {
+  for_each = toset(var.user_names)
+  name     = each.key
+}
+
+resource "aws_iam_group_membership" "this" {
+  name  = "${var.group_name}-membership"
+  group = aws_iam_group.this.name
+  users = var.user_names
+}
+
+# Step 3: Create IAM role
+resource "aws_iam_role" "this" {
+  name = var.role_name
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_iam_group.this.arn
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+# Step 4: Attach multiple policies to the IAM role
+resource "aws_iam_role_policy_attachment" "this" {
+  for_each   = toset(var.policy_arns)
+  role       = aws_iam_role.this.name
+  policy_arn = each.value
+}
+
+# Step 5: Attach the role to the group (indirect via assume role permissions)
+resource "aws_iam_policy" "group_assume_role_policy" {
+  name        = "GroupAssumeRolePolicy-${var.group_name}"
+  description = "Policy to allow group to assume IAM role"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
+        Resource = aws_iam_role.this.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_group_policy_attachment" "group_assume_role_attachment" {
+  group      = aws_iam_group.this.name
+  policy_arn = aws_iam_policy.group_assume_role_policy.arn
+}
+
+
+terragrunt.hcl
+----------------
+
+include {
+  path = find_in_parent_folders()
+}
+
+inputs = {
+  group_name  = "dev-group"
+  user_names  = ["bhaskar", "Devops-yash"]
+  policy_arns = [
+    "arn:aws:iam::aws:policy/AdministratorAccess",
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  ]
+  role_name   = "dev-role"
+}
+
