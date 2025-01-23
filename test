@@ -1,0 +1,119 @@
+ terragrunt apply
+15:19:25.317 STDOUT terraform: data.aws_iam_user.existing_users["bhaskar"]: Reading...
+15:19:25.318 STDOUT terraform: data.aws_iam_user.existing_users["Devops-yash"]: Reading...
+15:19:25.357 STDOUT terraform: data.aws_iam_user.existing_users["Devops-yash"]: Read complete after 0s [id=AIDAZFKAGDFHYPQ4QLEPZ]
+15:19:25.371 STDOUT terraform: data.aws_iam_user.existing_users["bhaskar"]: Read complete after 0s [id=AIDAZFKAGDFHYOSD6SMSE]
+15:19:25.533 STDOUT terraform: Terraform used the selected providers to generate the following execution
+15:19:25.533 STDOUT terraform: plan. Resource actions are indicated with the following symbols:
+15:19:25.533 STDOUT terraform:   + create
+15:19:25.533 STDOUT terraform: Terraform will perform the following actions:
+15:19:25.533 STDOUT terraform:   # aws_iam_group.this will be created
+15:19:25.533 STDOUT terraform:   + resource "aws_iam_group" "this" {
+15:19:25.533 STDOUT terraform:       + arn       = (known after apply)
+15:19:25.533 STDOUT terraform:       + id        = (known after apply)
+15:19:25.533 STDOUT terraform:       + name      = "dev-group"
+15:19:25.533 STDOUT terraform:       + path      = "/"
+15:19:25.533 STDOUT terraform:       + unique_id = (known after apply)
+15:19:25.533 STDOUT terraform:     }
+15:19:25.533 STDOUT terraform:   # aws_iam_group_membership.this will be created
+15:19:25.534 STDOUT terraform:   + resource "aws_iam_group_membership" "this" {
+15:19:25.534 STDOUT terraform:       + group = "dev-group"
+15:19:25.534 STDOUT terraform:       + id    = (known after apply)
+15:19:25.534 STDOUT terraform:       + name  = "dev-group-membership"
+15:19:25.534 STDOUT terraform:       + users = [
+15:19:25.534 STDOUT terraform:           + "Devops-yash",
+15:19:25.534 STDOUT terraform:           + "bhaskar",
+15:19:25.534 STDOUT terraform:         ]
+15:19:25.534 STDOUT terraform:     }
+15:19:25.534 STDOUT terraform:   # aws_iam_group_policy_attachment.group_assume_role_attachment will be created
+15:19:25.534 STDOUT terraform:   + resource "aws_iam_group_policy_attachment" "group_assume_role_attachment" {
+15:19:25.534 STDOUT terraform:       + group      = "dev-group"
+15:19:25.534 STDOUT terraform:       + id         = (known after apply)
+15:19:25.534 STDOUT terraform:       + policy_arn = (known after apply)
+15:19:25.534 STDOUT terraform:     }
+15:19:25.534 STDOUT terraform:   # aws_iam_policy.group_assume_role_policy will be created
+15:19:25.534 STDOUT terraform:   + resource "aws_iam_policy" "group_assume_role_policy" {
+15:19:25.534 STDOUT terraform:       + arn              = (known after apply)
+15:19:25.534 STDOUT terraform:       + attachment_count = (known after apply)
+15:19:25.534 STDOUT terraform:       + description      = "Policy to allow group to assume IAM role"
+15:19:25.534 STDOUT terraform:       + id               = (known after apply)
+15:19:25.534 STDOUT terraform:       + name             = "GroupAssumeRolePolicy-dev-group"
+15:19:25.534 STDOUT terraform:       + name_prefix      = (known after apply)
+15:19:25.534 STDOUT terraform:       + path             = "/"
+15:19:25.534 STDOUT terraform:       + policy           = (known after apply)
+15:19:25.534 STDOUT terraform:       + policy_id        = (known after apply)
+15:19:25.534 STDOUT terraform:       + tags_all         = (known after apply)
+15:19:25.534 STDOUT terraform:     }
+15:19:25.534 STDOUT terraform:   # aws_iam_role.this will be created
+15:19:25.534 STDOUT terraform:   + resource "aws_iam_role" "this" {
+15:19:25.534 STDOUT terraform:       + arn                   = (known after apply)
+15:19:25.534 STDOUT terraform:       + assume_role_policy    = (known after apply)
+15:19:25.534 STDOUT terraform:       + create_date           = (known after apply)
+15:19:25.534 STDOUT terraform:       + force_detach_policies = false
+15:19:25.534 STDOUT terraform:       + id                    = (known after apply)
+15:19:25.535 STDOUT terraform:       + managed_policy_arns   = (known after apply)
+15:19:25.535 STDOUT terraform:       + max_session_duration  = 3600
+15:19:25.535 STDOUT terraform:       + name                  = "dev-role"
+15:19:25.535 STDOUT terraform:       + name_prefix           = (known after apply)
+15:19:25.535 STDOUT terraform:       + path                  = "/"
+15:19:25.535 STDOUT terraform:       + tags_all              = (known after apply)
+15:19:25.535 STDOUT terraform:       + unique_id             = (known after apply)
+15:19:25.535 STDOUT terraform:       + inline_policy (known after apply)
+15:19:25.535 STDOUT terraform:     }
+15:19:25.535 STDOUT terraform:   # aws_iam_role_policy_attachment.this["arn:aws:iam::aws:policy/AdministratorAccess"] will be created
+15:19:25.535 STDOUT terraform:   + resource "aws_iam_role_policy_attachment" "this" {
+15:19:25.535 STDOUT terraform:       + id         = (known after apply)
+15:19:25.535 STDOUT terraform:       + policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+15:19:25.535 STDOUT terraform:       + role       = "dev-role"
+15:19:25.535 STDOUT terraform:     }
+15:19:25.535 STDOUT terraform:   # aws_iam_role_policy_attachment.this["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"] will be created
+15:19:25.535 STDOUT terraform:   + resource "aws_iam_role_policy_attachment" "this" {
+15:19:25.535 STDOUT terraform:       + id         = (known after apply)
+15:19:25.535 STDOUT terraform:       + policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+15:19:25.535 STDOUT terraform:       + role       = "dev-role"
+15:19:25.535 STDOUT terraform:     }
+15:19:25.535 STDOUT terraform: Plan: 7 to add, 0 to change, 0 to destroy.
+15:19:25.535 STDOUT terraform:
+15:19:25.535 STDOUT terraform: Do you want to perform these actions?
+15:19:25.535 STDOUT terraform:   Terraform will perform the actions described above.
+15:19:25.535 STDOUT terraform:   Only 'yes' will be accepted to approve.
+15:19:25.535 STDOUT terraform:   Enter a value:
+yes
+15:19:30.701 STDOUT terraform: aws_iam_group.this: Creating...
+15:19:30.802 STDOUT terraform: aws_iam_group.this: Creation complete after 0s [id=dev-group]
+15:19:30.809 STDOUT terraform: aws_iam_group_membership.this: Creating...
+15:19:30.811 STDOUT terraform: aws_iam_role.this: Creating...
+15:19:30.913 STDOUT terraform: aws_iam_group_membership.this: Creation complete after 0s [id=dev-group-membership]
+15:19:40.812 STDOUT terraform: aws_iam_role.this: Still creating... [10s elapsed]
+15:19:50.813 STDOUT terraform: aws_iam_role.this: Still creating... [20s elapsed]
+15:20:00.813 STDOUT terraform: aws_iam_role.this: Still creating... [30s elapsed]
+15:20:10.814 STDOUT terraform: aws_iam_role.this: Still creating... [40s elapsed]
+15:20:20.815 STDOUT terraform: aws_iam_role.this: Still creating... [50s elapsed]
+15:20:30.816 STDOUT terraform: aws_iam_role.this: Still creating... [1m0s elapsed]
+15:20:40.817 STDOUT terraform: aws_iam_role.this: Still creating... [1m10s elapsed]
+15:20:50.817 STDOUT terraform: aws_iam_role.this: Still creating... [1m20s elapsed]
+15:21:00.818 STDOUT terraform: aws_iam_role.this: Still creating... [1m30s elapsed]
+15:21:10.819 STDOUT terraform: aws_iam_role.this: Still creating... [1m40s elapsed]
+15:21:20.820 STDOUT terraform: aws_iam_role.this: Still creating... [1m50s elapsed]
+15:21:30.823 STDERR terraform: ╷
+15:21:30.823 STDERR terraform: │ Error: creating IAM Role (dev-role): operation error IAM: CreateRole, https response error StatusCode: 400, RequestID: a2613a48-d714-472b-ba1d-43be7c575ce4, MalformedPolicyDocument: Invalid principal in policy: "AWS":"arn:aws:iam::629884197199:group/dev-group"
+15:21:30.823 STDERR terraform: │
+15:21:30.823 STDERR terraform: │   with aws_iam_role.this,
+15:21:30.823 STDERR terraform: │   on main.tf line 33, in resource "aws_iam_role" "this":
+15:21:30.823 STDERR terraform: │   33: resource "aws_iam_role" "this" {
+15:21:30.823 STDERR terraform: │
+15:21:30.823 STDERR terraform: ╵
+15:21:30.848 ERROR  terraform invocation failed in ./.terragrunt-cache/lMu8acokWFxpeMrpaAK32xo6nw0/Z5DLoV8_7vg8KyMxyimdxuufnRg
+15:21:30.848 ERROR  error occurred:
+
+* Failed to execute "terraform apply" in ./.terragrunt-cache/lMu8acokWFxpeMrpaAK32xo6nw0/Z5DLoV8_7vg8KyMxyimdxuufnRg
+  ╷
+  │ Error: creating IAM Role (dev-role): operation error IAM: CreateRole, https response error StatusCode: 400, RequestID: a2613a48-d714-472b-ba1d-43be7c575ce4, MalformedPolicyDocument: Invalid principal in policy: "AWS":"arn:aws:iam::629884197199:group/dev-group"
+  │
+  │   with aws_iam_role.this,
+  │   on main.tf line 33, in resource "aws_iam_role" "this":
+  │   33: resource "aws_iam_role" "this" {
+  │
+  ╵
+
+  exit status 1
