@@ -8,17 +8,4 @@ https://medium.com/@mudasirhaji/step-by-step-process-of-how-to-add-and-mount-ebs
 Aws cognito
 ----------------
 
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "cognito-idp:InitiateAuth",
-        "cognito-idp:AdminInitiateAuth",
-        "cognito-idp:RespondToAuthChallenge"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
+
