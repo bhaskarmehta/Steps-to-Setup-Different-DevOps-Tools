@@ -22,3 +22,22 @@ Aws cognito
     }
   ]
 }
+
+
+identity pool
+----------------
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cognito-identity:GetId",
+                "cognito-identity:DescribeIdentity",
+                "cognito-identity:GetCredentialsForIdentity"
+            ],
+            "Resource": "arn"
+        }
+    ]
+}
