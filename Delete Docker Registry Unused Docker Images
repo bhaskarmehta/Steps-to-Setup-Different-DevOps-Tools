@@ -1,0 +1,1 @@
+docker exec -it <docker registry container name> registry garbage-collect /etc/docker/registry/config.yml --delete-untagged=true
