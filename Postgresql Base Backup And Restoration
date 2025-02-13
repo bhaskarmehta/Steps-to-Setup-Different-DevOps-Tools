@@ -15,7 +15,7 @@ pg_basebackup -D /backup_data/$(date +\%F_\%T) -Ft -z -P -U postgres -h 127.0.0.
 sudo chown postgres:postgres /var/lib/postgresql/.pgpass
 
 
-Restore the Backed Up Data into Another Server
+Restore the Backed Up Data into Another Server  - rsync -avz -e "ssh -p 9822" /backup_data/2025-02-12 aipl2924@10.151.0.63:/backup/
 ---------------------------------------------
 Database version must be same in which version it has been backed up
 
