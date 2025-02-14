@@ -38,6 +38,11 @@ sudo mkdir -p /data
 sudo chown -R postgres:postgres /data
 sudo chmod 700 /data
 
+Create Username and Password
+--------------------------------
+sudo -u postgres psql 
+CREATE(ALTER) USER postgres WITH PASSWORD 'postgres';  
+
 And run these
 --------------
 sudo tar -xzf /tar-file-location/base.tar.gz -C /data/
