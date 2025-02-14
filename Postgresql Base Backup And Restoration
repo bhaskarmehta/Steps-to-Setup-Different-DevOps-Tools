@@ -40,10 +40,10 @@ sudo chmod 700 /data
 
 And run these
 --------------
-sudo tar -xzf /tar file location/base.tar.gz -C /data/
+sudo tar -xzf /tar-file-location/base.tar.gz -C /data/
 
 sudo mkdir -p /data/pg_wal
-sudo tar -xzf /tar file location/pg_wal.tar.gz -C /data/pg_wal/
+sudo tar -xzf /tar-file-location/pg_wal.tar.gz -C /data/pg_wal/
 
 sudo chown -R postgres:postgres /data
 sudo chmod 700 /data
