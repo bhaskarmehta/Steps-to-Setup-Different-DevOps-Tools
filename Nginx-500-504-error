@@ -179,3 +179,23 @@ On high-performance servers: For those applications bearing high-traffic volumes
                              client_header_timeout keep the server responsive.
 Monitor for Patterns: The log files must be monitored for the slow connection rate which may be due to attacks or abusive behavior. The timeout value 
                       must then be adjusted.
+
+
+To Remove the File Upload Size Limit in Nginx ,  The default file upload size limit in Nginx is 1MB (1,048,576 bytes).
+----------------------------------------------------------------------------------------------------------------------
+
+sudo nano /etc/nginx/sites-available/default
+
+Set it to 0 inside the http, server, or location block:
+
+server {
+    listen 80;
+    server_name example.com;
+
+    client_max_body_size 0;
+
+    location /upload {
+        client_max_body_size 0;
+    }
+}
+
