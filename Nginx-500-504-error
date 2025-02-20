@@ -1,3 +1,7 @@
+Note -  If we have a application server running on diffrent network(vpc) and database server is in diffrent netwrok then api(application) may face huge latency. So solution is to 
+        keep both in same network.
+
+
 Nginx Timeout Issue Fix  -  https://cyberpanel.net/blog/nginx-timeout-fix-issue-now
 --------------------------
 
