@@ -2,12 +2,21 @@ Note -  If we have a application server running on diffrent network(vpc) and dat
         keep both in same network.
 To take base backup of the postgresql database - pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1
 
+Restart PostgreSQL in Windows Server
+======================================
+pg_ctl -D "C:\Program Files\PostgreSQL\12\data" restart -m fast
 
 To run the above command without promting password - 
 ---------------------------------------------------
 1) nano ~/.pgpass
 2) 127.0.0.1:5432:*:postgres:your_password
+=========================================
+For storing creds of two servers DB
+10.120.1.2:2433:*:postgres:your_password
+10.120.1.4:2433:*:postgres:your_password
+==========================================
 3) chmod 0600 ~/.pgpass
+
 
 30 19 * * * pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1 >> /var/log/pg_basebackup.log 2>&1
 
@@ -20,7 +29,7 @@ Restore the Backed Up Data into Another Server  - rsync -avz -e "ssh -p 9822" /b
 ---------------------------------------------
 Database version must be same in which version it has been backed up
 
-
+  
 For version 12
 ----------------
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
