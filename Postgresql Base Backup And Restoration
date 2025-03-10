@@ -69,3 +69,174 @@ Verify restoration
 --------------------
 sudo -u postgres psql
 \l
+
+
+
+Steps to Create Postgresql DB Cluster
+--------------------------------------
+Steps to create Postgresql DB Cluster  - https://www.servermania.com/kb/articles/setup-postgresql-cluster
+
+https://docs.vultr.com/set-up-highly-available-postgresql-replication-cluster-on-ubuntu-20-04-server, 
+https://docs.vultr.com/how-to-install-configure-backup-and-restore-postgresql-on-ubuntu-20-04-lts
+--------------------------------------
+
+Restart PostgreSQL in Windows Server
+======================================
+Open CMD as Administrator  - pg_ctl -D "C:\Program Files\PostgreSQL\12\data" restart -m fast
+
+
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+curl -O https://www.postgresql.org/media/keys/ACCC4CF8.asc
+sudo apt-key add ACCC4CF8.asc
+sudo apt-key list
+sudo apt-get update
+sudo apt-get install postgresql-12
+sudo systemctl status postgresql       To check the status and restart the the particular version of postgresql - sudo systemctl status postgresql@14-main
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+psql --version - verify installation
+
+
+sudo systemctl stop postgresql
+sudo chown -R postgres:postgres /data
+sudo rsync -av /var/lib/postgresql /data   - Change the data directory
+sudo mv /var/lib/postgresql/12/main /var/lib/postgresql/12/main.bak
+
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+  #data_directory = '/var/lib/postgresql/12/main'
+  change to data_directory = '/data/postgresql/12/main'
+
+  change port = 5432
+  listen_address ='*'
+
+From root - pg_lsclusters -  to check how many postgresql is installed
+
+To install postgis - sudo apt-get install postgresql-12-postgis-3 postgresql-12-postgis-3-scripts -  postgresql version 12
+
+sudo -u postgres psql
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+SELECT PostGIS_Version();
+
+
+In the primary server - 
+------------------------
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+listen_addresses = '*'                   # Listen on all IP addresses
+wal_level = replica                      # Set WAL level to 'replica' for replication
+max_wal_senders = 10                     # Set max number of WAL sender processes
+archive_mode = on                        # Enable archive mode
+archive_command = 'cp %p /var/lib/postgresql/12/main/archive/%f'  # Archive command
+
+   Create Replication user
+   -------------------------
+   sudo -u postgres psql
+   CREATE ROLE replicator REPLICATION LOGIN ENCRYPTED PASSWORD 'yourpassword';  // Machine Password
+   
+   Exit the shell using \q
+
+   Edit pg_hba.conf
+------------------
+sudo nano /etc/postgresql/12/main/pg_hba.conf
+
+host    replication     replicator      10.151.0.59/32(private ip of secondary server)       md5   - Add more server if needed
+
+sudo systemctl restart postgresql
+
+
+
+ Configure the Standby Server(Secondary server)
+--------------------------------------------------
+sudo systemctl stop postgresql
+
+
+Set Up Data Directory - Remove the existing data directory and perform a base backup from the primary server:
+-------------------------
+sudo rm -rf /var/lib/postgresql/12/main
+sudo -u postgres pg_basebackup -h 10.151.0.58 -D /var/lib/postgresql/12/main -U replicator -P -R
+
+This command will prompt for the password of the replicator user created earlier. -  Machine Password
+
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+hot_standby = on
+sudo systemctl start postgresql
+
+
+Verify the Replication Setup(From primary server)-
+------------------------------
+sudo -u postgres psql -c "SELECT * FROM pg_stat_replication;"
+
+This command should show details of the standby server, indicating that replication is working correctly.
+
+Check Standby Status on the Standby Server-
+--------------------------------------------
+sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+
+
+
+Test Data Replication (Run on Primary Server)
+------------------------
+ 
+ sudo -u postgres psql
+ CREATE DATABASE test_db;
+ \c test_db;
+
+CREATE TABLE products (
+               product_id SERIAL PRIMARY KEY,
+               product_name VARCHAR (50)
+           );
+
+INSERT INTO products(product_name) VALUES ('LEATHER JACKET');
+           INSERT INTO products(product_name) VALUES ('WINTER HOODIE');
+           INSERT INTO products(product_name) VALUES ('BROWN WALLET');
+
+
+Run on Secondary server to test Data Replication
+---------------------------------------------------
+sudo -u postgres psql
+\c test_db;
+
+ SELECT 
+               product_id,
+               product_name
+           FROM products;
+
+
+Our replica node is running in hot standby mode and can only accept read-only operations. You may attempt to submit the following INSERT statement in the replica node to check this behavior.
+
+ test_db=# INSERT INTO products(product_name) VALUES ('RED TSHIRT');
+
+Output - ERROR:  cannot execute INSERT in a read-only transaction
+
+Note -  If we have a application server running on diffrent network(vpc) and database server is in diffrent netwrok then api(application) may face huge latency. So solution is to 
+        keep both in same network.
+
+
+
+To uninstall(Remove) the Postgresql From ubuntu server
+-------------------------------------------------------
+sudo systemctl stop postgresql
+sudo apt-get --purge remove postgresql\*
+
+Remove PostgreSQL Data Directory
+----------
+sudo rm -rf /var/lib/postgresql/
+
+Remove Configuration Files
+----------
+sudo rm -rf /etc/postgresql/
+sudo rm -rf /etc/postgresql-common/
+
+Remove PostgreSQL Logs
+-------
+sudo rm -rf /var/log/postgresql/
+
+ Verify Removal
+-------
+psql --version
