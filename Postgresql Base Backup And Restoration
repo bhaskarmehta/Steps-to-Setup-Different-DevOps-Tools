@@ -4,7 +4,7 @@ To take base backup of the postgresql database - pg_basebackup -D /backup_data -
 
 Restart PostgreSQL in Windows Server
 ======================================
-pg_ctl -D "C:\Program Files\PostgreSQL\12\data" restart -m fast
+Open CMD as Administrator  -  pg_ctl -D "C:\Program Files\PostgreSQL\12\data" restart -m fast
 
 To run the above command without promting password - 
 ---------------------------------------------------
