@@ -90,3 +90,12 @@ resource "aws_s3_bucket_policy" "guardduty_s3_policy" {
     ]
   })
 }
+
+
+
+ aws guardduty update-detector --detector-id c2cac24693f970700ef66d27e70388b5 --data-sources S3Logs="{Enable=true}"
+aws guardduty get-detector --detector-id c2cac24693f970700ef66d27e70388b5 --query "DataSources.S3Logs"           {
+    "Status": "ENABLED"
+}
+
+
