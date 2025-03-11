@@ -26,6 +26,18 @@ pg_basebackup -D /backup_data/$(date +\%F_\%T) -Ft -z -P -U postgres -h 127.0.0.
 
 sudo chown postgres:postgres /var/lib/postgresql/.pgpass
 
+To take direct backup of the single DB from the server
+------------------------------------------------------
+
+To list the DB- 
+sudo -u postgres psql
+\l
+
+To take backup of particular DB
+pg_dump -U postgres -h localhost -p 5432 -F c -b -v -f pagrexcodb_backup.dump pagrexcodb
+
+
+
 
 Restore the Backed Up Data into Another Server  - rsync -avz -e "ssh -p 9822" /backup_data/2025-02-12 aipl2924@10.151.0.63:/backup/
 ---------------------------------------------
