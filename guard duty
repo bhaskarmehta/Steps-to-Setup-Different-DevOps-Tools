@@ -98,4 +98,40 @@ aws guardduty get-detector --detector-id c2cac24693f970700ef66d27e70388b5 --quer
     "Status": "ENABLED"
 }
 
+ cat outputs.tf
+output "guardduty_detector_id" {
+  description = "GuardDuty Detector ID"
+  value       = data.aws_guardduty_detector.existing.id  # ✅ Use existing detector
+}
+
+output "kms_key_arn" {
+  description = "KMS Key ARN used for GuardDuty encryption"
+  value       = aws_kms_key.guardduty_kms.arn
+}
+
+output "s3_bucket_name" {
+  description = "S3 bucket used for storing GuardDuty logs"
+  value       = var.guardduty_bucket
+}
+
+
+
+ cat variables.tf
+variable "aws_region" {
+  description = "AWS Region where GuardDuty is enabled"
+  type        = string
+  default     = "ap-south-1"
+}
+
+variable "aws_account_id" {
+  description = "AWS Account ID of the GuardDuty Admin"
+  type        = string
+  default     = "629884197199"  # Change to your AWS Account ID
+}
+
+variable "guardduty_bucket" {
+  description = "S3 bucket for GuardDuty logs"
+  type        = string
+  default     = "amnbucket12345"  # Change to your bucket name
+}
 
