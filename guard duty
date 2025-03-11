@@ -1,0 +1,92 @@
+ cat main.tf
+provider "aws" {
+  region = "ap-south-1"  # Change to your AWS region
+}
+
+# Fetch existing GuardDuty detector (Avoids duplicate errors)
+data "aws_guardduty_detector" "existing" {}
+
+# Allow GuardDuty to store logs in S3
+resource "aws_guardduty_publishing_destination" "publishing_dest" {
+  detector_id      = data.aws_guardduty_detector.existing.id
+  destination_arn  = "arn:aws:s3:::amnbucket12345"
+  destination_type = "S3"
+  kms_key_arn      = aws_kms_key.guardduty_kms.arn
+}
+
+# Enable GuardDuty for the organization (Fixed boolean issue)
+resource "aws_guardduty_organization_configuration" "org_config" {
+  detector_id                      = data.aws_guardduty_detector.existing.id
+  auto_enable_organization_members = "ALL"  # Fixed: Expecting boolean, not a string
+}
+
+# Assign admin for GuardDuty in AWS Organization
+resource "aws_guardduty_organization_admin_account" "admin" {
+  admin_account_id = var.aws_account_id
+}
+
+# Create KMS key for encrypting GuardDuty logs (Fixed policy issue)
+resource "aws_kms_key" "guardduty_kms" {
+  description             = "GuardDuty KMS Key"
+  deletion_window_in_days = 10
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "EnableAccountRootAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${var.aws_account_id}:root"
+        }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid    = "AllowGuardDutyAccess"
+        Effect = "Allow"
+        Principal = {
+          Service = "guardduty.amazonaws.com"
+        }
+        Action = [
+          "kms:GenerateDataKey",
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Create an alias for the KMS key
+resource "aws_kms_alias" "guardduty_kms_alias" {
+  name          = "alias/guardduty"
+  target_key_id = aws_kms_key.guardduty_kms.id
+}
+
+# S3 bucket policy to allow GuardDuty to write findings
+resource "aws_s3_bucket_policy" "guardduty_s3_policy" {
+  bucket = var.guardduty_bucket
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "guardduty.amazonaws.com"
+        }
+        Action = [
+          "s3:GetBucketLocation",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.guardduty_bucket}",
+          "arn:aws:s3:::${var.guardduty_bucket}/*"
+        ]
+      }
+    ]
+  })
+}
