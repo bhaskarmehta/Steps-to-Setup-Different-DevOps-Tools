@@ -11,6 +11,8 @@ To run the above command without promting password -
 1) nano ~/.pgpass
 2) 127.0.0.1:5432:*:postgres:your_password
 =========================================
+
+Or instead of adding in .pgpass add this  => host    replication     all             127.0.0.1/32            trust
 For storing creds of two servers DB
 10.120.1.2:2433:*:postgres:your_password
 10.120.1.4:2433:*:postgres:your_password
