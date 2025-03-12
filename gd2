@@ -1,0 +1,151 @@
+cat main.tf
+provider "aws" {
+  region = "us-east-1"  # Change to your AWS region
+}
+
+# ✅ Create GuardDuty Detector if it doesn't exist
+resource "aws_guardduty_detector" "guardduty" {
+  enable = true
+
+  datasources {
+    s3_logs {
+      enable = true  # ✅ Enable S3 Protection
+    }
+  }
+}
+
+# ✅ Use the new detector for publishing logs
+resource "aws_guardduty_publishing_destination" "publishing_dest" {
+  detector_id      = aws_guardduty_detector.guardduty.id
+  destination_arn  = "arn:aws:s3:::remote-backend-bucket"
+  destination_type = "S3"
+  kms_key_arn      = aws_kms_key.guardduty_kms.arn
+}
+
+# ✅ Use the new detector for organization configuration
+#resource "aws_guardduty_organization_configuration" "org_config" {
+ # detector_id                      = aws_guardduty_detector.guardduty.id
+  #auto_enable_organization_members = "ALL"
+#}
+
+resource "aws_guardduty_organization_configuration" "org_config" {
+  detector_id                      = aws_guardduty_detector.guardduty.id
+  auto_enable_organization_members = "NEW"  # ✅ "ALL" is invalid; use "NEW"
+}
+
+# ✅ Assign an admin for GuardDuty in AWS Organization
+resource "aws_guardduty_organization_admin_account" "admin" {
+  admin_account_id = var.aws_account_id
+}
+
+# ✅ Create KMS key for GuardDuty logs
+resource "aws_kms_key" "guardduty_kms" {
+  description             = "GuardDuty KMS Key"
+  deletion_window_in_days = 10
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "EnableAccountRootAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${var.aws_account_id}:root"
+        }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid    = "AllowGuardDutyAccess"
+        Effect = "Allow"
+        Principal = {
+          Service = "guardduty.amazonaws.com"
+        }
+        Action = [
+          "kms:GenerateDataKey",
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# ✅ Create an alias for the KMS key
+resource "aws_kms_alias" "guardduty_kms_alias" {
+  name          = "alias/guardduty"
+  target_key_id = aws_kms_key.guardduty_kms.id
+}
+
+# ✅ Ensure GuardDuty has permission to write to S3
+resource "aws_s3_bucket_policy" "guardduty_s3_policy" {
+  bucket = var.guardduty_bucket
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "guardduty.amazonaws.com"
+        }
+        Action = [
+          "s3:GetBucketLocation",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.guardduty_bucket}",
+          "arn:aws:s3:::${var.guardduty_bucket}/*"
+        ]
+      }
+    ]
+  })
+}
+
+
+
+ cat outputs.tf
+#output "guardduty_detector_id" {
+ # description = "GuardDuty Detector ID"
+  #value       = data.aws_guardduty_detector.existing.id  # ✅ Use existing detector
+#}
+
+output "guardduty_detector_id" {
+  description = "GuardDuty Detector ID"
+  value       = aws_guardduty_detector.guardduty.id  # ✅ Use newly created detector
+}
+
+output "kms_key_arn" {
+  description = "KMS Key ARN used for GuardDuty encryption"
+  value       = aws_kms_key.guardduty_kms.arn
+}
+
+output "s3_bucket_name" {
+  description = "S3 bucket used for storing GuardDuty logs"
+  value       = var.guardduty_bucket
+}
+
+
+
+cat variables.tf
+variable "aws_region" {
+  description = "AWS Region where GuardDuty is enabled"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "aws_account_id" {
+  description = "AWS Account ID of the GuardDuty Admin"
+  type        = string
+  default     = "629884197199"  # Change to your AWS Account ID
+}
+
+variable "guardduty_bucket" {
+  description = "S3 bucket for GuardDuty logs"
+  type        = string
+  default     = "remote-backend-bucket"  # Change to your bucket name
+}
+
+
