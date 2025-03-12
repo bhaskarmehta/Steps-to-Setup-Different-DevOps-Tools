@@ -36,6 +36,8 @@ sudo -u postgres psql
 To take backup of particular DB
 pg_dump -U postgres -h localhost -p 5432 -F c -b -v -f pagrexcodb_backup.dump pagrexcodb
 
+pg_dump -U postgres -h localhost -p 5432 -F p -b -v -f pagrexcodb_backup.sql pagrexcodb => In .sql formate
+
 
 
 
