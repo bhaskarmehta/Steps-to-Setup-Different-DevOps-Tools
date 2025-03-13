@@ -148,4 +148,141 @@ variable "guardduty_bucket" {
   default     = "remote-backend-bucket"  # Change to your bucket name
 }
 
+=================================
+
+root@ip-172-31-18-208:/home/ubuntu/terraform# ls
+main.tf  outputs.tf  terragrunt.hcl  variables.tf
+root@ip-172-31-18-208:/home/ubuntu/terraform# cat main.tf
+provider "aws" {
+  region = var.aws_region
+}
+
+# ✅ Create GuardDuty Detector with Dynamic Service Enabling
+resource "aws_guardduty_detector" "guardduty" {
+  enable = true
+
+  datasources {
+    s3_logs {
+      enable = contains(var.enabled_guardduty_services, "S3Logs")  # ✅ Enable S3 if included
+    }
+
+  }
+}
+
+# ✅ GuardDuty Publishing Destination
+resource "aws_guardduty_publishing_destination" "publishing_dest" {
+  detector_id      = aws_guardduty_detector.guardduty.id
+  destination_arn  = "arn:aws:s3:::${var.guardduty_bucket}"
+  destination_type = "S3"
+  kms_key_arn      = aws_kms_key.guardduty_kms.arn
+}
+
+# ✅ GuardDuty Organization Configuration
+resource "aws_guardduty_organization_configuration" "org_config" {
+  detector_id                      = aws_guardduty_detector.guardduty.id
+  auto_enable_organization_members = "NEW"  # ✅ Automatically enable new organization members
+}
+
+# ✅ GuardDuty Organization Admin Account
+resource "aws_guardduty_organization_admin_account" "admin" {
+  admin_account_id = var.aws_account_id
+}
+
+# ✅ KMS Key for GuardDuty Logs
+resource "aws_kms_key" "guardduty_kms" {
+  description             = "GuardDuty KMS Key"
+  deletion_window_in_days = 10
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "EnableAccountRootAccess"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::${var.aws_account_id}:root" }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid    = "AllowGuardDutyAccess"
+        Effect = "Allow"
+        Principal = { Service = "guardduty.amazonaws.com" }
+        Action = ["kms:GenerateDataKey", "kms:Encrypt", "kms:Decrypt", "kms:DescribeKey"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# ✅ KMS Alias for GuardDuty
+resource "aws_kms_alias" "guardduty_kms_alias" {
+  name          = "alias/guardduty"
+  target_key_id = aws_kms_key.guardduty_kms.id
+}
+
+# ✅ S3 Bucket Policy for GuardDuty
+resource "aws_s3_bucket_policy" "guardduty_s3_policy" {
+  bucket = var.guardduty_bucket
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = { Service = "guardduty.amazonaws.com" }
+        Action = ["s3:GetBucketLocation", "s3:PutObject"]
+        Resource = [
+          "arn:aws:s3:::${var.guardduty_bucket}",
+          "arn:aws:s3:::${var.guardduty_bucket}/*"
+        ]
+      }
+    ]
+  })
+}
+root@ip-172-31-18-208:/home/ubuntu/terraform# cat variables.tf
+variable "aws_region" {
+  description = "AWS Region where GuardDuty is enabled"
+  type        = string
+}
+
+variable "aws_account_id" {
+  description = "AWS Account ID of the GuardDuty Admin"
+  type        = string
+}
+
+variable "guardduty_bucket" {
+  description = "S3 bucket for GuardDuty logs"
+  type        = string
+}
+
+variable "enabled_guardduty_services" {
+  description = "List of GuardDuty services to enable (e.g., S3Logs, CloudTrail, DNSLogs)"
+  type        = list(string)
+}
+root@ip-172-31-18-208:/home/ubuntu/terraform# cat outputs.tf
+output "guardduty_detector_id" {
+  description = "GuardDuty Detector ID"
+  value       = aws_guardduty_detector.guardduty.id
+}
+
+output "kms_key_arn" {
+  description = "KMS Key ARN used for GuardDuty encryption"
+  value       = aws_kms_key.guardduty_kms.arn
+}
+
+output "s3_bucket_name" {
+  description = "S3 bucket used for storing GuardDuty logs"
+  value       = var.guardduty_bucket
+}
+root@ip-172-31-18-208:/home/ubuntu/terraform# cat terragrunt.hcl
+terraform {
+  source = "."
+}
+
+inputs = {
+  aws_region                 = "us-east-1"
+  aws_account_id             = "629884197199"
+  guardduty_bucket           = "remote-backend-bucket"
+  enabled_guardduty_services = ["S3Logs"]  # ✅ Enable S3 + CloudTrail
+}
 
