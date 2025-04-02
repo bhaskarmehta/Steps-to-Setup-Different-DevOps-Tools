@@ -1,0 +1,17 @@
+df -h
+lsblk
+
+Format the disk (if needed)
+sudo mkfs.ext4 /dev/sdb
+
+Create a mount point
+sudo mkdir -p /data
+
+Mount the disk
+sudo mount /dev/sdb /data
+
+Persist the mount (optional)
+If you want the disk to mount automatically on reboot, add an entry to /etc/fstab:
+
+nano /etc/fstab
+/dev/sdb /data ext4 defaults 0 0
