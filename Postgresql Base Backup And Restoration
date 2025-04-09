@@ -2,6 +2,29 @@ Note -  If we have a application server running on diffrent network(vpc) and dat
         keep both in same network.
 To take base backup of the postgresql database - pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1
 
+
+========================================
+If getting this issue when restarting the postgresql 
+-----------------------------------------------------
+2021-10-24 10:13:43.269 UTC  [11253] FATAL:  could not map anonymous shared memory: Cannot allocate memory
+2021-10-24 10:13:43.269 UTC  [11253] HINT:  This error usually means that PostgreSQL's request for a shared memory segment exceeded available memory, swap space, or huge pages. 
+To reduce the request size (currently 5507432448 bytes), reduce PostgreSQL's shared memory usage, perhaps by reducing shared_buffers or max_connections.
+
+
+Then run below in the server
+----------------------------
+sudo fallocate -l 8G /.swapfile; sudo chmod 600 /.swapfile; sudo mkswap /.swapfile; sudo swapon /.swapfile; 
+
+nano /etc/fstab
+
+/.swapfile swap swap defaults 0 0
+
+
+systemctl daemon-reload
+systemctl restart postgresql@12-main
+systemctl status postgresql@12-main
+
+========================================
 Restart PostgreSQL in Windows Server
 ======================================
 Open CMD as Administrator  -  pg_ctl -D "C:\Program Files\PostgreSQL\12\data" restart -m fast
