@@ -1,40 +1,119 @@
-Run on Master and Worker Node
-----------------------------
-sudo apt update
-sudo apt install apt-transport-https
-sudo apt install docker.io -y
-sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
-sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
- (or)
-nano /etc/apt/sources.list.d/kubernetes.list
-   deb http://apt.kubernetes.io/ kubernetes-xenial main
-sudo apt update
-sudo apt install kubelet=1.24.0-00  kubeadm=1.24.0-00 kubectl=1.24.0-00 kubernetes-cni -y --allow-downgrades
-  (or)
-sudo apt install kubelet  kubeadm kubectl kubernetes-cni -y
-curl -s https://packages.cloud.google.com/apt/dists/kubernetes-xenial/main/binary-amd64/Packages | grep Version | awk '{print $2}'
+Setup K8s Cluster Using Kubeadm
+=================================
 
 
+Run this in Master and Worker Nodes
+====================================
 
-Now run on Master Node
----------------------
-sudo kubeadm init
+1) Disable Swap using the below commands
+
+swapoff -a
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+2) Forwarding IPv4 and letting iptables see bridged traffic
+
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# sysctl params required by setup, params persist across reboots
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+
+# Apply sysctl params without reboot
+sudo sysctl --system
+
+# Verify that the br_netfilter, overlay modules are loaded by running the following commands:
+lsmod | grep br_netfilter
+lsmod | grep overlay
+
+# Verify that the net.bridge.bridge-nf-call-iptables, net.bridge.bridge-nf-call-ip6tables, and net.ipv4.ip_forward system variables are set to 1 in your sysctl config by running the following command:
+sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+
+
+3) Install container runtime
+
+curl -LO https://github.com/containerd/containerd/releases/download/v1.7.14/containerd-1.7.14-linux-amd64.tar.gz
+sudo tar Cxzvf /usr/local containerd-1.7.14-linux-amd64.tar.gz
+curl -LO https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+sudo mkdir -p /usr/local/lib/systemd/system/
+sudo mv containerd.service /usr/local/lib/systemd/system/
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+sudo systemctl daemon-reload
+sudo systemctl enable --now containerd
+
+# Check that containerd service is up and running
+systemctl status containerd
+
+4) Install runc
+
+curl -LO https://github.com/opencontainers/runc/releases/download/v1.1.12/runc.amd64
+sudo install -m 755 runc.amd64 /usr/local/sbin/runc
+
+5) Install cni plugin 
+
+curl -LO https://github.com/containernetworking/plugins/releases/download/v1.5.0/cni-plugins-linux-amd64-v1.5.0.tgz
+sudo mkdir -p /opt/cni/bin
+sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.5.0.tgz
+
+6) Install kubeadm, kubelet and kubectl
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl --allow-downgrades --allow-change-held-packages
+sudo apt-mark hold kubelet kubeadm kubectl
+
+kubeadm version
+kubelet --version
+kubectl version --client
+
+7) Configure crictl to work with containerd
+
+sudo crictl config runtime-endpoint unix:///var/run/containerd/containerd.sock
+
+
+Run this only on Master Node
+=================================
+8) Initialize control plane
+
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=10.160.15.195 --node-name master
+
+Note  -  Copy and paste somewhere, the token that is created using kubeadm init at last
+
+9) Prepare kubeconfig
+
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
-Run on each Worker Node(You will get this after running kubeadm init command on master node)
--------------------------------------------------------------------------------------------
-kubeadm join 172.31.31.144:6443 --token hxv5sh.ww1yb6rzwcw037kh --discovery-token-ca-cert-hash sha256:167782f6384c69e0d181fecd46496a833ff1d64f86c90c4eb3f5220cba5ad9f4
+10) Install calico
+
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/operator-crds.yaml
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/tigera-operator.yaml
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/custom-resources.yaml -O
+kubectl create -f custom-resources.yaml
 
 
-Need to create the subnet.env file at  /run/flannel location on the each  worker nodes   -
---------------------------------------------------------------------------------------
-1) cd /run/flannel
-2) vi subnet.env
-3) Paste the below content on subnet.env file
-      FLANNEL_NETWORK=10.244.0.0/16
-      FLANNEL_SUBNET=10.244.0.1/24
-      FLANNEL_MTU=1450
-      FLANNEL_IPMASQ=true
+
+Run this only on Worker Nodes
+=============================
+11) Run the command that was copied from Step 8 as - 
+
+kubeadm join 172.31.82.34:6443 --token 4h6s4d.zuq7jc665146n95a \
+        --discovery-token-ca-cert-hash sha256:7c3b3c83f6cb3367c4128badc69df6a3614f43401b1ca8c5dceddcdb88850af6
+
+If forgot to copy then run "kubeadm  token create --print-join-command"
