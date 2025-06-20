@@ -1,0 +1,45 @@
+Install and Configure PostgreSQLAdd commentMore actions
+-----------------------------------
+
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+curl -O https://www.postgresql.org/media/keys/ACCC4CF8.asc
+sudo apt-key add ACCC4CF8.asc
+sudo apt-key list
+sudo apt-get update
+sudo apt-get install postgresql-12
+sudo systemctl status postgresql
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+psql --version - verify installation
+
+
+sudo systemctl stop postgresql
+sudo chown -R postgres:postgres /data
+sudo rsync -av /var/lib/postgresql /data   - Change the data directory
+sudo mv /var/lib/postgresql/12/main /var/lib/postgresql/12/main.bak
+
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+  #data_directory = '/var/lib/postgresql/12/main'
+  change to data_directory = '/data/postgresql/12/main'
+
+  change port = 5432
+  listen_address ='*'
+
+
+Create a password for user postgres 
+------------------------------------
+ALTER USER postgres WITH PASSWORD 'postgres';
+
+
+Configure Sonarqube using Docker when Database is is running on the Same server as a Service
+--------------------------------------------------------------------------------------------
+docker run -d \
+  --name sonarqube \
+  --network="host" \
+  -p 9000:9000 \
+  -e SONAR_JDBC_URL=jdbc:postgresql://127.0.0.1:5432/sonarqube \
+  -e SONAR_JDBC_USERNAME=postgres \
+  -e SONAR_JDBC_PASSWORD=postgres \
+  sonarqube:lts-community
