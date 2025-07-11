@@ -1,0 +1,1262 @@
+D-4.5: Beta Go-Live of DSS Modules on Staging Server - Crop-Weather Watch System
+Keyclock explain - https://chatgpt.com/share/f72b6f80-8ed5-4eb6-9553-42cb7687cee0
+
+helm upgrade --install --values values.yaml superset superset/superset -n superset
+
+pg_dump -U postgres -h localhost -d krishiDSS -t gt_data.moa_dcs_v3 -f /path/to/backup_file.sql
+
+C:\Users\bhaskar.mehta\sonar-scanner\bin\sonar-scanner.bat --version
+
+C:\Users\bhaskar.mehta\sonar-scanner\bin\sonar-scanner.bat -D"sonar.login=<"token">
+
+
+git pull origin master --allow-unrelated-histories
+
+D:\apache-tomcat-9.0.68\conf 
+
+Mount the GCP bucket - gcsfuse --key-file=/home/aipl2924/sa.json cs-data-0123 ~/bucket_data
+
+nohup java -jar wkhtmltopdf-0.0.1-SNAPSHOT.jar > wkhtmlpdf.out &  -  Nohup
+
+Nginx Ingress Rate Limit -> successful requests = (period * rate + burst) * (number of nginx-controller replicas)  = 1*2 + 5*2
+successful requests = (1minute * 2requests/minute + 5*requests/minute) * 1 = (2rpm + 10rpm) * 1  = 12
+
+guj-staging - Staging Gujarat Geoserver Password
+
+Default Behaviour(Status code) of Nginx Ingress Controller for Too Many request is 503 - Service Unavailable but that can be  changed by adding 
+data:
+  limit-req-status-code: "429"      in cm of the ingress controller.
+
+(Or) We can add in Annotations configuration snippet - 
+
+nginx.ingress.kubernetes.io/configuration-snippet: |
+      limit_req_status 429; 
+
+==================================================================
+Taint Toleration in Staging
+
+
+C:\Users\bhaskar.mehta\k8sshortcuts>k taint node gke-krishidss-k8s-stagin-default-pool-cf90bfce-7hnq node=python:NoSchedule
+node/gke-krishidss-k8s-stagin-default-pool-cf90bfce-pzwp tainted
+
+C:\Users\bhaskar.mehta\k8sshortcuts>k label node gke-krishidss-k8s-stagin-default-pool-cf90bfce-7hnq app=python
+node/gke-krishidss-k8s-stagin-default-pool-cf90bfce-pzwp labeled
+
+
+Node Updated in Staging at 2/3/2025
+
+==========================================================================
+
+Agri_Product - Agrogate server deployment - 
+------------------------------
+AIPL_APP -> Apache24 -> 1 - title apache - apache.exe
+         apache Tomcat-9.0.59 - bin- startup.bat- 2  UI  - apache Tomcat-9.0.59->webapps->agrogate
+         Redis-> 64 bit -> redis server.exe 3
+         Common services -> Backend service -> (in only image processing  -> run- java -jar -Xmx10g  file.jar ) . There is a bat file. Copy and run that 
+         Agrogate-Service - > Deployments
+
+Farm-boundary -  AgriProduct -  Mismatch in production properties file
+
+Infolive - infolive.jar
+
+========================================
+Nginx Process List In Windows Server
+
+tasklist | Select-String "nginx"
+taskkill /F /IM nginx.exe
+start nginx.exe
+============================================
+systemctl daemon-reload
+systemctl status docker
+systemctl restart docker
+
+Restart Redis Server - sudo systemctl restart redis-server
+  
+http://10.195.82.1:8090/httpclient.html  - LAN
+
+https://bugzilla-dev.allizom.org/home - bugzilla
+
+
+
+If Geoserver Heap Space is OutOfMemory then use Below in Startup.bat
+--------------------------------------------------------------------
+
+set CMD_LINE_ARGS=
+:setArgs
+if ""%1""=="""" goto doneSetArgs
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto setArgs
+:doneSetArgs
+
+rem Set Java memory options  // Add these two lines before execute in startup.bat file
+set JAVA_OPTS=-Xms2g -Xmx4g
+
+call "%EXECUTABLE%" start %CMD_LINE_ARGS%
+
+:end
+                       
+
+                      
+Mongodb Production pvc - pvc-6bfab31b-c4f4-488b-8b55-e0d18a50a8e0 - 500 GB
+
+
+To check any port is open or not in Windows Powershell - netstat -ano | findstr ":8444"
+
+krishidssbb - in bundboundary
+
+Command to Install Nginx Ingress And Set the Static Load Balancer IP to K8s Cluster
+----------------------------------------------------------------------------------------
+helm install ingress-nginx ingress-nginx/ingress-nginx --set controller.config.allowSnippetAnnotations=true --set controller.config.allow-snippet-annotations=true --set controller.service.loadBalancerIP=35.200.158.171 -n krishidss
+
+To install the Specific Version of Ingress-Controller - 
+---------------------------------------------------------
+Check the Ingress Version Install - helm list -n krishidss
+helm uninstall ingress-nginx -n krishidss
+helm install ingress-nginx ingress-nginx/ingress-nginx --version 4.11.1 --set controller.config.allowSnippetAnnotations=true --set controller.config.allow-snippet-annotations=true -n krishidss
+---------------------------------------------------------------------------------------
+Commands - 
+
+To start nginx on windows server - start nginx.exe
+To stop nginx on windows server - nginx.exe -s quit
+To reload nginx  - nginx -s reload
+
+To push on registry - docker push <domain>/krishi-python-service-package
+
+In Windows
+-------------
+mstsc - to open rdp
+taskmgr - to open task manager for finding details
+
+In Linux
+---------
+top or htop command to find Memory 
+nproc to find CPU
+
+Create secret for docker registry - kubectl create secret docker-registry regcred --docker-server=<domain> --docker-username=agriculture --docker-password=agriculture
+
+Setup mongodb on k8s cluster
+------------------------------
+-> kubectl exec -it <pod name> -- /bin/bash
+Run the command - 1) mongosh
+                  2) rs.initiate()
+                  3) rs.status()
+                  4) db.todos.insert({"title": "Test"})
+                  5) db.todos.find()
+-> To relicate the data of Primary DB into its slave - 
+                  6) rs.slaveOk()
+
+
+Jenkins-Server
+Registry - portainer
+NFS-server
+Dockerfile
+Gitlab server
+Nginx ingress controller
+Prometheus,grafana and loki
+Helm Chart
+Keyclock
+MongoDB
+Nginx
+HPA
+
+git remote add origin http://10.195.82.243:8080/agriculture/krishidss/krishi-imd-service.git
+
+git remote add origin http://10.195.82.243:8080/agriculture/krishidss/keycloak-configmap.git
+
+New  - kubectl create secret tls da.gov.in-secret --cert=D:\certs\da.gov.in-25-26\wildcard_da_gov_in-fullchain.crt --key=D:\certs\da.gov.in-25-26\wildcard_da_gov_in.key -n krishidss
+kubectl create secret tls da.gov.in-secret --cert=D:\da_gov_in_secret\wildcard_da_gov_in_full.crt --key=D:\da_gov_in_secret\wildcard_da_gov_in.key -n krishidss
+kubectl create secret tls gov.in-secret --cert=D:\gov_cert\wildcard_krishi-dss_gov_in-fullchain.crt --key=D:\gov_cert\wildcard_krishi-dss_gov_in.key -n krishidss
+kubectl create secret tls amnex.co.in-secret --cert=D:/certs/new/amnex.co.in/wildcard_amnex_co_in_full_chain.crt --key=D:/certs/new/amnex.co.in/wildcard_amnex_co_in.key -n krishidss
+
+Krishidss Staging DB Server
+--------------------------------
+Server IP:  10.145.0.11
+Port:           9822
+User:          aipl2758
+Password:  Amn#x@96374
+psql 
+
+
+10.151.0.58  - primary db
+10.151.0.59  - Standby
+
+Steps to create Postgresql DB Cluster  - https://www.servermania.com/kb/articles/setup-postgresql-cluster
+
+https://docs.vultr.com/set-up-highly-available-postgresql-replication-cluster-on-ubuntu-20-04-server, 
+https://docs.vultr.com/how-to-install-configure-backup-and-restore-postgresql-on-ubuntu-20-04-lts
+--------------------------------------
+
+Restart PostgreSQL in Windows Server
+======================================
+Open CMD as Administrator  - pg_ctl -D "C:\Program Files\PostgreSQL\12\data" restart -m fast
+
+To take the backup the Schema table - pg_dump -U username -h hostname -p port -t cww.wildfire_data krishiDSS > wildfire_data_backup.sql
+To restore the table - psql -U username -h hostname -p port -d krishiDSS -f wildfire_data_backup.sql
+To take backup of schema - pg_dump -U postgres -h localhost -d krishiDSS --schema=geoserver > geoserver_full_backup.sql
+To send the Data or file from One Server to another in Same Subnet(VPC) - sudo rsync -avz -e 'ssh -p 9822' geoserver_full_backup.sql aipl2924@10.145.0.22:/home/aipl2924
+To copy into the bucket - gsutil cp geoserver_full_backup.sql gs://gujarat_agri/
+To restore the  schema  - psql -U postgres -d krishiDSS -f /home/aipl2924/geoserver_full_backup.sql
+
+To take the Schema table in to csv  - psql -U postgres -d krishiDSS -c "\copy dcs_survey.cg_dcs TO 'cg_dcs.csv' WITH CSV HEADER"
+
+
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+curl -O https://www.postgresql.org/media/keys/ACCC4CF8.asc
+sudo apt-key add ACCC4CF8.asc
+sudo apt-key list
+sudo apt-get update
+sudo apt-get install postgresql-12
+sudo systemctl status postgresql       To check the status and restart the the particular version of postgresql - sudo systemctl status postgresql@14-main
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+psql --version - verify installation
+
+
+sudo systemctl stop postgresql
+sudo chown -R postgres:postgres /data
+sudo rsync -av /var/lib/postgresql /data   - Change the data directory
+sudo mv /var/lib/postgresql/12/main /var/lib/postgresql/12/main.bak
+
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+  #data_directory = '/var/lib/postgresql/12/main'
+  change to data_directory = '/data/postgresql/12/main'
+
+  change port = 5432
+  listen_address ='*'
+
+From root - pg_lsclusters -  to check how many postgresql is installed
+
+To install postgis - sudo apt-get install postgresql-12-postgis-3 postgresql-12-postgis-3-scripts -  postgresql version 12
+
+sudo -u postgres psql
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+SELECT PostGIS_Version();
+
+
+In the primary server - 
+------------------------
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+listen_addresses = '*'                   # Listen on all IP addresses
+wal_level = replica                      # Set WAL level to 'replica' for replication
+max_wal_senders = 10                     # Set max number of WAL sender processes
+archive_mode = on                        # Enable archive mode
+archive_command = 'cp %p /var/lib/postgresql/12/main/archive/%f'  # Archive command
+
+   Create Replication user
+   -------------------------
+   sudo -u postgres psql
+   CREATE ROLE replicator REPLICATION LOGIN ENCRYPTED PASSWORD 'yourpassword';  // Machine Password
+   
+   Exit the shell using \q
+
+   Edit pg_hba.conf
+------------------
+sudo nano /etc/postgresql/12/main/pg_hba.conf
+
+host    replication     replicator      10.151.0.59/32(private ip of secondary server)       md5   - Add more server if needed
+
+sudo systemctl restart postgresql
+
+
+
+ Configure the Standby Server(Secondary server)
+--------------------------------------------------
+sudo systemctl stop postgresql
+
+
+Set Up Data Directory - Remove the existing data directory and perform a base backup from the primary server:
+-------------------------
+sudo rm -rf /var/lib/postgresql/12/main
+sudo -u postgres pg_basebackup -h 10.151.0.58 -D /var/lib/postgresql/12/main -U replicator -P -R
+
+This command will prompt for the password of the replicator user created earlier. -  Machine Password
+
+
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+hot_standby = on
+sudo systemctl start postgresql
+
+
+Verify the Replication Setup(From primary server)-
+------------------------------
+sudo -u postgres psql -c "SELECT * FROM pg_stat_replication;"
+
+This command should show details of the standby server, indicating that replication is working correctly.
+
+Check Standby Status on the Standby Server-
+--------------------------------------------
+sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+
+
+
+Test Data Replication (Run on Primary Server)
+------------------------
+ 
+ sudo -u postgres psql
+ CREATE DATABASE test_db;
+ \c test_db;
+
+CREATE TABLE products (
+               product_id SERIAL PRIMARY KEY,
+               product_name VARCHAR (50)
+           );
+
+INSERT INTO products(product_name) VALUES ('LEATHER JACKET');
+           INSERT INTO products(product_name) VALUES ('WINTER HOODIE');
+           INSERT INTO products(product_name) VALUES ('BROWN WALLET');
+
+
+Run on Secondary server to test Data Replication
+---------------------------------------------------
+sudo -u postgres psql
+\c test_db;
+
+ SELECT 
+               product_id,
+               product_name
+           FROM products;
+
+
+Our replica node is running in hot standby mode and can only accept read-only operations. You may attempt to submit the following INSERT statement in the replica node to check this behavior.
+
+ test_db=# INSERT INTO products(product_name) VALUES ('RED TSHIRT');
+
+Output - ERROR:  cannot execute INSERT in a read-only transaction
+
+Note -  If we have a application server running on diffrent network(vpc) and database server is in diffrent netwrok then api(application) may face huge latency. So solution is to 
+        keep both in same network.
+
+
+
+To uninstall(Remove) the Postgresql From ubuntu server
+-------------------------------------------------------
+sudo systemctl stop postgresql
+sudo apt-get --purge remove postgresql\*
+
+Remove PostgreSQL Data Directory
+----------
+sudo rm -rf /var/lib/postgresql/
+
+Remove Configuration Files
+----------
+sudo rm -rf /etc/postgresql/
+sudo rm -rf /etc/postgresql-common/
+
+Remove PostgreSQL Logs
+-------
+sudo rm -rf /var/log/postgresql/
+
+ Verify Removal
+-------
+psql --version
+
+
+
+
+git checkout -b R_m1_v1 e608cb80fc8d991
+
+
+
+build promote
+
+Configure Grafana Prometheus Installed using Helm
+---------------------------------------------------
+
+ADD the Domain tls secret into this monitoring NS
+1) Go to Configmap of the Grafana - kubectl get cm -n monitoring
+Output - stable-grafana
+2) Edit the cm as - k edit cm stable-grafana -n monitoring and add below line as - 
+apiVersion: v1
+data:
+  grafana.ini: |
+    [analytics]
+    check_for_updates = true
+    [grafana_net]
+    url = https://grafana.net
+    [log]
+    mode = console
+    [paths]
+    data = /var/lib/grafana/
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+    [server]
+    serve_from_sub_path = true
+    domain = 'test.gov.in'
+    root_url = http://test.gov.in/grafana-monitoring/
+
+Add this line - 
+----
+[server]
+    serve_from_sub_path = true
+    domain = 'test.gov.in'
+    root_url = http://test.gov.in/grafana-monitoring/
+----
+
+
+To Set the Alert in Grafana
+------------------------------
+In Grafana.ini add smtp
+
+data:
+  grafana.ini: |
+    [analytics]
+    check_for_updates = true
+    [grafana_net]
+    url = https://grafana.net
+    [log]
+    mode = console
+    [paths]
+    data = /var/lib/grafana/
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+    [server]
+    serve_from_sub_path = true
+    domain = 'test.gov.in'
+    root_url = http://test.gov.in/grafana-monitoring/
+    [smtp]
+    enabled = true
+    host = smtp.gmail.com:587
+    user = bhaskar2@test.com
+    password = <token>
+    from_address = bhaskar2@test.com
+    from_name = Grafana Alerts
+    starttls_policy = Opportunistic
+    skip_verify = false
+
+
+
+1) Delete the existing cm of Grafana as - kubectl delete cm  stable-grafana -n monitoring
+2) Apply this CM
+3) Delete the Grafana Pod So that it can take affect of the configured email
+
+If Docker is Unable to pull Any Image from registry from a Private VM - 10.151.0.60 - openproject
+-----------------------------------------------------------------------
+Add {
+  "registry-mirrors": ["https://mirror.gcr.io"]
+}  in /etc/docker/daemon.json
+
+
+
+client_body_timeout 1800s;            
+client_header_timeout 1800s;          
+keepalive_timeout 1800s;              
+send_timeout 1800s; 
+
+
+ proxy_connect_timeout 3600s;         
+ proxy_read_timeout 3600s;            
+ proxy_send_timeout 3600s;
+
+
+Convert UTC to IST in Linux  -  https://forum.boltiot.com/t/convert-the-utc-to-ist-in-linux/2127
+----------------------------
+
+1.First search for the available time zone by the below command.
+
+timedatectl list-timezones | grep -i Asia
+
+2. Then unlink the current timezone
+
+sudo unlink /etc/localtime
+
+3.Now set the new timezone. The syntax for setting the new time zone is as below
+
+sudo ln -s /usr/share/zoneinfo/[zone/timezone] /etc/localtime
+
+For example
+
+sudo ln -s /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+
+4. Now check the DateTime using date command.
+
+date
+Tue May 28 10:52:00 IST 2019
+
+
+eksctl create cluster  --name mycluster --version 1.30 --nodegroup-name mygroup --node-type t2.medium --nodes 2 --region ap-south-1
+
+eksctl create cluster  --name myclusternew --version 1.30 --nodegroup-name mygroupnew --node-type t2.medium --nodes 2 --region ap-south-1
+
+argocd login afd820daa982a499aa62d66a13997bb3-373836532.ap-south-1.elb.amazonaws.com --username admin --password rA4iWhjQitUUUCuC --insecure
+
+
+argocd cluster add bhaskar@myclusternew.ap-south-1.eksctl.io — server afd820daa982a499aa62d66a13997bb3-373836532.ap-south-1.elb.amazonaws.com
+
+
+
+To install argocd CLI on ubuntu
+------------------------------------
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+
+
+
+Login into argocd server
+-----------------------------
+argocd login afd820daa982a499aa62d66a13997bb3-373836532.ap-south-1.elb.amazonaws.com(argocd server url) --username admin --password rA4iWhjQitUUUCuC --insecure
+
+argocd login a881c752ecb3e4de99303d14aa5ec9ad-894249762.ap-south-1.elb.amazonaws.com --username admin --password 95SDrvy8GdU4YtWK --insecure
+
+To see the cluster associated with the argocd server
+-----------------------------------------------------
+argocd cluster list
+
+ To add the cluster to the argocd server
+------------------------------------------
+argocd cluster add bhaskar@myclusternew.ap-south-1.eksctl.io(cluster context name) — server afd820daa982a499aa62d66a13997bb3-373836532.ap-south-1.elb.amazonaws.com(api server endpoint getting from eks)
+
+To get the context list 
+---------------------------
+kubectl config get-contexts
+kubectl config use-context <context name>
+
+Command to get the current cluster endpoint
+--------------------------------------------
+kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}
+
+
+
+
+Connect NFS server and Store data into It  - Production NFS Server mounted in 10.151.0.60 server
+-------------------------------------------
+1) Both the machine and and the cluster should be in same vpc.
+2) On the machine run - 
+   sudo apt update
+   sudo apt install nfs-common
+   mkdir -p ~/nfs-mount
+   
+   Mount the NFS Server
+  ----------------------
+   sudo mount -o nolock <NFS_SERVER_POD_IP>:<NFS_SHARE_PATH> ~/nfs-mount
+
+sudo mount -o nolock 10.228.4.20:/exports/ ~/nfs-mount - python nfs-server-prod
+sudo mount -o nolock 192.168.3.47:/exports/ ~/nfs-mount - python nfs-server-stage in 10.145.0.22 server
+sudo mount -o nolock 192.168.0.205:/exports/common_data ~/custom-script-common-data - python nfs-server-stage in 10.145.0.22 server
+  Ex -  sudo mount -o nolock 10.228.3.18:/exports/images/KrishiDss/geoJsonFile ~/nfs-mount  - check with pod also which path of pod is mounted to nfs server
+   -> Here /exports/images/KrishiDss/geoJsonFile of nfs server is mounted to /data/images/KrishiDss/geoJsonFile of pod
+  To copy the data - cp -r myfile ~/nfs-mount/
+  Now we can verify this by connecting the nfs server and the the pods associated with this server
+sudo mount -o nolock 192.168.6.7:/exports/images/KrishiDss/geoJsonFile ~/nfs-mount
+sudo mount -o nolock 192.168.3.9:/exports/common_data/MODIS_Images ~/custom-script-common-data
+192.168.6.9
+
+192.168.5.15
+
+sudo mount -o nolock 192.168.5.15:/exports/agroforestry
+
+sudo mount -o nolock 192.168.1.15:/exports/ ~/nfs-mount
+192.168.1.15
+
+To mount the directory of the bucket
+====================================
+gcsfuse --key-file=prod.json --only-dir=eo_data/MODIS krishi-dss-data cs-bucket-data
+
+To copy the Data from GCP Bucket Folder 
+-------------------------------------------
+gsutil -m cp -r gs://test/custom_script_data/271d0444-5530-4f26-af62-6268f03df259/* .
+
+To list and delete the SA from the Server
+--------------------------------------------
+gcloud auth list
+gcloud auth revoke shapefile-sa@carbon-hulling-430606-t9.iam.gserviceaccount.com
+
+To mount the GCP Bucket 
+-------------------------
+gcloud auth list
+gcloud auth activate-service-account shapefile-sa@carbon-hulling-430606-t9.iam.gserviceaccount.com --key-file=shapefile.json
+gcsfuse -o allow_other --implicit-dirs --file-mode 777 --dir-mode 777 --key-file=shapefile.json cs-data-0123 /root/bucket_data
+
+
+
+To unmount the machine 
+------------------------
+ sudo umount ~/nfs-mount
+
+
+
+Bad Gateway 502 Error Nginx
+-------------------------------
+-> If we get a badgatway 502 for the backend service or any services running using docker and using nginx reverse proxy then the error might be 
+   because of the port mentioned in nginx and the port expose by docker are different
+
+
+Nginx Getting 404 On Refresh
+-----------------------------
+1) If we redirect to 404 then it will give 404 error on refresh
+
+location / {
+             root   D:\UI\agri;
+             index  index.html index.htm;
+	     try_files $uri $uri/ =404;
+	     #try_files $uri $uri/ /index.html;
+  }
+
+2) If we redirect to index.html then it will load the page on refresh
+ 
+location / {
+             root   D:\UI\agri;
+             index  index.html index.htm;
+	    #try_files $uri $uri/ =404;
+	     try_files $uri $uri/ /index.html;
+  }
+
+->  With a refresh on Angular app, we need to tell nginx web server to first look at the index.html file if the requested route
+    exists or not before showing the error page. This is working fine for me:
+
+nginx.conf
+----------
+
+server {
+    listen       80;
+    server_name  localhost;
+
+    location / {
+        root   /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+        index  index.html index.htm;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+}
+
+
+
+
+Configure Sonarqube using Docker when Database is is running on the Same server as a Service
+--------------------------------------------------------------------------------------------
+docker run -d \
+  --name sonarqube \
+  --network="host" \
+  -p 9000:9000 \
+  -e SONAR_JDBC_URL=jdbc:postgresql://127.0.0.1:5432/sonarqube \
+  -e SONAR_JDBC_USERNAME=postgres \
+  -e SONAR_JDBC_PASSWORD=postgres \
+  sonarqube:lts-community
+
+
+
+
+
+To find which directory is consuming how much storage
+------------------------------------------------------
+ncdu /path/to/directory
+
+
+To set up a username and password for Kibana, you need to configure Kibana and Elasticsearch to use security features, including authentication. Here's a step-by-step guide:
+--------------------------------------------------------------------------------------------------------
+
+1. Enable Security Features in Elasticsearch
+Open the Elasticsearch configuration file (elasticsearch.yml):
+
+sudo nano /etc/elasticsearch/elasticsearch.yml
+Add or update the following lines to enable the security features:
+
+
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+
+
+Restart Elasticsearch:
+
+sudo systemctl restart elasticsearch
+2. Set Up Built-In Users
+Elasticsearch comes with built-in users like elastic, kibana, and logstash_system. You need to set a password for these users.
+
+Run the elasticsearch-setup-passwords command:
+
+
+sudo /usr/share/elasticsearch/bin/elasticsearch-setup-passwords interactive
+Follow the prompts to set passwords for the elastic, kibana_system, and other built-in users.
+
+3. Update Kibana Configuration
+Open the Kibana configuration file (kibana.yml):
+
+sudo nano /etc/kibana/kibana.yml
+Add the credentials for the kibana_system user:
+
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "your_kibana_system_password"
+
+
+Restart Kibana:
+
+sudo systemctl restart kibana
+4. Access Kibana
+Open your browser and navigate to Kibana's URL (e.g., http://localhost:5601).
+
+Log in using the elastic user and the password you set during the setup.
+
+
+
+Also need to update in filebeat.yml
+--------------------------------------
+filebeat.inputs:
+- type: docker
+  containers:
+    path: /var/lib/docker/containers
+    stream: all
+    ids:
+      - "*"
+
+processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+output.elasticsearch:
+  hosts: ["http://10.128.3.244:9200"]
+  username: "elastic"
+  password: "agriculture"
+setup.ilm.enabled: false
+
+logging.level: debug
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+
+
+
+/opt/fluent-bit/bin/fluent-bit
+
+
+
+
+[SERVICE]
+    Flush        5
+    Daemon       Off
+    Log_Level    info
+    Parsers_File parsers.conf
+
+[INPUT]
+    Name         tail
+    Path         /var/lib/docker/containers/*/*.log
+    Parser       docker
+    Tag          docker.*
+    Docker_Mode  on
+
+[FILTER]
+    Name         record_modifier
+    Match        docker.*
+    Record       container_name ${container_name}
+    Record       container_id ${container_id}
+
+[OUTPUT]
+    Name         forward
+    Match        *
+    Host         10.128.3.244
+    Port         24225
+
+
+
+
+To get all the indices in elasticsearch
+---------------------------------------
+curl -u elastic:agriculture -X GET "http://localhost:9200/_cat/indices?v"
+
+To delete the particular indices
+----------------------------------
+curl -u elastic:agriculture -X DELETE "http://localhost:9200/testdata-2025.01.03"
+
+
+beta-server-10-128-3-137
+
+
+
+
+  GNU nano 6.2                                                                   fluent-bit.conf *                                                                          [SERVICE]
+    Flush        1
+    Daemon       Off
+    Log_Level    debug
+    Parsers_File /etc/fluent-bit/parsers.conf
+
+[INPUT]
+    Name         tail
+    Path         /var/lib/docker/containers/*/*.log
+    Tag          docker.*
+    Parser       docker
+    DB           /var/log/flb_docker.db
+    Mem_Buf_Limit 10MB
+    Skip_Long_Lines On
+    Path_Key     source
+
+[FILTER]
+    Name         lua
+    Match        docker.*
+    Script       /etc/fluent-bit/scripts/enrich.lua
+    Call         add_metadata
+
+[OUTPUT]
+    Name         forward
+    Match        *
+    Host         10.128.3.244
+    Port         24225
+
+
+
+------------------------
+[SERVICE]
+    Flush        1
+    Daemon       Off
+    Log_Level    debug
+    Parsers_File /etc/fluent-bit/parsers.conf
+
+[INPUT]
+    Name         tail  -> Reads the logs line by line
+    Path         /var/lib/docker/containers/*/*.log
+    Tag          beta-server-10-128-3-137.*  - Assigns a unique tag to all logs from this input.
+    Parser       docker  - Applies the docker parser (defined in the parsers file) to format the logs into structured JSON.
+    DB           /var/log/flb_docker.db - Tracks the position of log files to avoid reprocessing logs that have already been read.
+    Mem_Buf_Limit 10MB 
+    Skip_Long_Lines On
+    Path_Key     source
+
+[FILTER]
+    Name         lua
+    Match        beta-server-10-128-3-137.*  -  Specifies which logs to filter. Only logs with the beta-server-10-128-3-137.* tag will be processed.
+    Script       /etc/fluent-bit/scripts/enrich.lua
+    Call         add_metadata
+
+[OUTPUT]
+    Name         forward
+    Match        beta-server-10-128-3-137.* - Specifies which logs to forward. Only logs tagged with beta-server-10-128-3-137.* will be sent.
+    Host         10.128.3.244
+    Port         24225
+
+
+docker run -d \
+  --name sonarqube \
+  -p 9000:9000 \
+  -e JAVA_OPTS="-Xmx2g -Xms1g -XX:+HeapDumpOnOutOfMemoryError" \
+  sonarqube:lts-community
+
+
+Postgresql Base Backup and Restoration
+-----------------------------------------
+Database Backup - https://chatgpt.com/c/6746df9a-7e0c-8013-b1ca-0cc7f32a6d22
+
+To take base backup of the postgresql database - pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1
+
+
+To run the above command without promting password - 
+---------------------------------------------------
+1) nano ~/.pgpass
+2) 127.0.0.1:5432:*:postgres:your_password
+3) chmod 0600 ~/.pgpass
+
+(Or) Instead of doing above add this => host    replication     all             127.0.0.1/32            trust
+
+4) crontab -e
+5) pg_basebackup -D /backup_data/$(date +\%F_\%T) -Ft -z -P -U postgres -h 127.0.0.1 >> /var/log/pg_basebackup_$(date +\%F).log 2>&1
+
+ sudo chown postgres:postgres /var/lib/postgresql/.pgpass
+
+ 30 19 * * * pg_basebackup -D /backup_data -Ft -z -P -U postgres -h 127.0.0.1 >> /var/log/pg_basebackup.log 2>&1
+
+Restore the Backed Up Data intoAnother Server
+---------------------------------------------
+Database version must be same in which version it has been backed up
+
+
+For version 12
+----------------
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+sudo apt update
+sudo apt install postgresql-12
+
+psql --version
+
+sudo systemctl stop postgresql
+
+In the postgresql.conf change the data directory as data_directory = "/data"
+
+sudo mkdir -p /data
+sudo chown -R postgres:postgres /data
+sudo chmod 700 /data
+
+And run these
+--------------
+sudo tar -xzf /tar-file-location/base.tar.gz -C /data/
+
+sudo mkdir -p /data/pg_wal
+sudo tar -xzf /tar-file-location/pg_wal.tar.gz -C /data/pg_wal/
+
+sudo chown -R postgres:postgres /data
+sudo chmod 700 /data
+
+sudo systemctl start postgresql
+
+Verify restoration
+--------------------
+sudo -u postgres psql
+\l
+
+
+
+
+K8s and Docker Errors and solution
+-----------------------
+
+If we have a private docker registry running on a ubuntu machine then we have to add insecure-registries
+{
+  "insecure-registries": ["10.153.0.14:5000"]
+}
+
+Note: This approach skips TLS verification, so it should only be used in trusted internal environments
+
+Else we will get 
+docker login 10.153.0.14:5000
+Username: agriculture
+Password:
+Error response from daemon: Get "https://10.153.0.14:5000/v2/": tls: failed to verify certificate: x509: cannot validate certificate 
+for 10.153.0.14 because it doesn't contain any IP SANs
+
+
+In K8s, If we use Insecure Registry then we will get this error
+================================================================
+Failed to pull image "10.153.0.14:5000/keycloak-prod-dr": failed to pull and unpack image "10.153.0.14:5000/keycloak-prod-dr:latest": failed to resolve
+reference "10.153.0.14:5000/keycloak-prod-dr:latest": failed to do request: Head "https://10.153.0.14:5000/v2/keycloak-prod-dr/manifests/latest": tls: 
+failed to verify certificate: x509: cannot validate certificate for 10.153.0.14 because it doesn't contain any IP SANs
+  Warning  Failed     1s (x2 over 15s)  kubelet            Error: ErrImagePull
+
+
+Solution
+=============
+1) Either add  below in K8s node 
+ {
+  "insecure-registries": ["10.153.0.14:5000"]
+}
+
+
+2) Or bind the 10.153.0.14 ip with lb and then domain and using nginx reverse proxy route the traffic to 5000 port where registry is running.
+
+
+
+
+Limit the Folder size in the Linux
+==================================
+
+1) apt update && apt install quota -y
+
+2) Enable Quota Support on the Filesystem
+   1) mount -o remount,usrquota /data
+   2) Make it persistent (add to /etc/fstab):
+      i) nano /etc/fstab
+      ii) /dev/sdb  /data  ext4  defaults,usrquota  0  2
+   3) Remount to apply changes:
+      mount -o remount /data     
+
+3) Initialize Quota System
+    1) Remove old quota files (if any):
+       i) rm -f /data/aquota.*
+    2) Scan filesystem and create quota databases:
+       i) quotacheck -cum /data
+       -c: Create quota files
+
+       -u: Check user quotas
+
+       -m: Force check on mounted filesystem
+    3) Enable quotas:
+       1) quotaon -v /data
+
+4) Create Users and Assign Quotas
+   1) Create dedicated users
+     i) useradd quotatest   # For /data/test
+     ii) useradd quotafile1    # For /data/file1
+   2) Set quotas:
+     i) 10GB limit for quotatest (for /data/test):
+       i) setquota -u quotatest 0 10G 0 0 /data
+     ii) 15GB limit for quotafile1 (for /data/file1):
+       i) setquota -u quotafile1 0 15G 0 0 /data
+
+
+5) Restrict Directory Access
+   1) Change ownership of directories to quota users:
+      i) chown quotatest:quotatest /data/test
+      ii) chown quotafile1:quotafile1 /data/file1
+
+   2) Restrict permissions (only owners can write):
+      i) chmod 700 /data/test /data/file1
+
+
+6) Verify Quotas
+   1) Check all quotas:
+      i) repquota /data
+   2) Test quota enforcement:
+      i) Try writing 11GB as quotatest (should fail at 10GB):
+      Ex - sudo -u quotatest dd if=/dev/zero of=/data/test/largefile bs=1G count=11
+
+
+
+Alternative Approach
+--------------------------
+If Still Failing: Alternative Approach
+If the system refuses to use traditional quota files, switch to kernel quotas (recommended for ext4):
+
+tune2fs -O quota /dev/sdb   # Replace /dev/sdb with your actual device
+mount -o remount,usrquota /data
+quotacheck -cum /data
+quotaon /data
+
+
+To Setup the Gitlab On Ubuntu Server
+==========================================
+sudo apt-get update
+sudo apt-get install -y curl openssh-server ca-certificates tzdata perl
+sudo apt-get install -y postfix
+curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
+sudo EXTERNAL_URL="https://gitlab.example.com" apt-get install gitlab-ee
+
+
+Initial username is root and password can be found at /etc/gitlab/initial_root_password
+
+To change the Data directory of repository
+------------------------------------------
+By default, Linux package installations store the Git repository data under /var/opt/gitlab/git-data/repositories, 
+and the Gitaly service listens on unix:/var/opt/gitlab/gitaly/gitaly.socket.
+
+To change the location of the directory,
+-----------------------------------------
+1) Edit /etc/gitlab/gitlab.rb:
+
+gitaly['configuration'] = {
+  storage: [
+    {
+      name: 'default',
+      path: '/data/git-data/repositories',
+    },
+  ],
+}
+
+2) Reconfigure GitLab:
+sudo gitlab-ctl reconfigure
+
+=====================================
+
+CORS and 403(Forbidden) Issue In Java
+=====================================
+If we get 403(Forbidden) error from the browser and CORS but gets success from Postman then and there might me to allow the origin from the Code side only
+Like for java application create a file that allows the origin.
+
+
+
+==================================================================================
+
+Script to Mount the bucket for Custom Scripting
+-----------------------------------------------
+
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount# ls
+mount_bucket_data.sh  mount_user_nfs.sh  sync_bucket_data_user_nfs.sh
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount# cat mount_bucket_data.sh
+#!/bin/bash
+
+# Configuration
+BUCKET_NAME="krishi-dss-data"
+BUCKET_PATH="custom_script_data"
+LOCAL_MOUNT_BASE="/home/aipl2924/krishidss-bucket-mount"
+GCS_KEY_FILE="/home/aipl2924/prod.json"
+
+# Database connection
+DB_HOST="10.145.0.11"
+DB_PORT="5432"
+DB_NAME="test"
+DB_USER="postgres"
+DB_PASSWORD="postgres"
+
+echo "=== Starting GCS Bucket Mount Script ==="
+
+# Authenticate with GCS
+export GOOGLE_APPLICATION_CREDENTIALS="$GCS_KEY_FILE"
+gcloud auth activate-service-account --key-file="$GCS_KEY_FILE" > /dev/null 2>&1
+
+# Get users needing mount
+echo "Querying database for unmounted users..."
+users=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t \
+  -c "SELECT username FROM user_management.custom_scripting_user_managment WHERE ip IS NOT NULL AND bucket_mounted = false")
+
+[ -z "$users" ] && echo "No unmounted users found" && exit 0
+
+echo "$users" | while read -r username; do
+  username=$(echo "$username" | xargs)
+  [ -z "$username" ] && continue
+
+  echo "Processing user: $username"
+
+  # 1. Create GCS folder if not exists
+  echo "Creating GCS folder: gs://$BUCKET_NAME/$BUCKET_PATH/$username/"
+  gsutil -m cp -n /dev/null "gs://$BUCKET_NAME/$BUCKET_PATH/$username/.keep" || {
+    echo "Failed to create GCS folder"
+    continue
+  }
+
+  # 2. Create local mount directory
+  user_mount_dir="$LOCAL_MOUNT_BASE/$username"
+  echo "Creating local directory: $user_mount_dir"
+  sudo mkdir -p "$user_mount_dir"
+  sudo chmod 777 "$user_mount_dir"
+  sudo chown $(whoami):$(whoami) "$user_mount_dir"
+
+  # 3. Mount GCS bucket (using only bucket name, not full path)
+  if ! mountpoint -q "$user_mount_dir"; then
+    echo "Mounting bucket $BUCKET_NAME to $user_mount_dir (showing only $BUCKET_PATH/$username)"
+    gcsfuse -o allow_other \
+            --implicit-dirs \
+            --file-mode 777 \
+            --dir-mode 777 \
+            --key-file="$GCS_KEY_FILE" \
+            --only-dir "$BUCKET_PATH/$username" \
+            "$BUCKET_NAME" \
+            "$user_mount_dir"
+
+    if [ $? -eq 0 ]; then
+      echo "Successfully mounted for $username"
+
+      # 4. Update database
+      PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+        -c "UPDATE user_management.custom_scripting_user_managment SET bucket_mounted = true WHERE username = '$username'"
+
+      # Test mount
+      touch "$user_mount_dir/.mount_test" && rm "$user_mount_dir/.mount_test"
+    else
+      echo "Failed to mount for $username"
+    fi
+  else
+    echo "Already mounted: $user_mount_dir"
+  fi
+done
+
+echo "=== Script completed ==="
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount#
+
+---------------------------------------------------------------------------------------
+
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount# cat mount_user_nfs.sh
+#!/bin/bash
+
+# Database connection
+DB_HOST="10.145.0.11"
+DB_PORT="5432"
+DB_NAME="test"
+DB_USER="postgres"
+DB_PASSWORD="postgres"
+
+echo "=== Starting NFS mount script ==="
+
+# Get clean records without formatting
+echo "Querying for mountable users..."
+query_result=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t <<-EOSQL
+  SELECT username || ' ' || ip  -- Combine fields with space delimiter
+  FROM user_management.custom_scripting_user_managment
+  WHERE ip IS NOT NULL
+    AND (bucket_mounted = false OR bucket_mounted IS NULL)
+EOSQL
+)
+
+[ -z "$query_result" ] && echo "No mountable users found" && exit 0
+
+echo "Found these records:"
+echo "$query_result"
+
+echo "$query_result" | while read -r line; do
+  # Extract username and IP (space-delimited)
+  username=$(echo "$line" | awk '{print $1}')
+  pod_ip=$(echo "$line" | awk '{print $2}')
+
+  [ -z "$pod_ip" ] && continue
+
+  echo "Processing: $username ($pod_ip)"
+  mount_point="/home/aipl2924/users-mount/$username"
+
+  sudo mkdir -p "$mount_point"
+
+  if sudo mount -t nfs -o nolock "$pod_ip:/exports/" "$mount_point"; then
+    echo "Mount successful! Updating database..."
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<-EOSQL
+      UPDATE user_management.custom_scripting_user_managment
+      SET bucket_mounted = false
+      WHERE username = '$username'
+EOSQL
+  else
+    echo "Mount failed for $username"
+    # Verify connectivity
+    echo "Testing connection to $pod_ip..."
+    if ping -c 1 "$pod_ip" &> /dev/null; then
+      echo "Host is reachable but mount failed"
+      echo "Verify NFS service is running on $pod_ip:"
+      echo "  sudo showmount -e $pod_ip"
+    else
+      echo "Host is unreachable"
+    fi
+  fi
+done
+
+echo "=== Script completed ==="
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount#
+
+-----------------------------------------------------------------------------------------
+
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount# cat sync_bucket_data_user_nfs.sh
+#!/bin/bash
+
+# Configuration
+SOURCE_BASE="/home/aipl2924/krishidss-bucket-mount"
+DEST_BASE="/home/aipl2924/users-mount"
+LOG_FILE="/var/log/bucket_to_user_sync_$(date +%Y%m%d).log"
+
+# Ensure directories exist
+mkdir -p "$SOURCE_BASE" "$DEST_BASE"
+touch "$LOG_FILE"
+
+echo "=== Starting Bucket → User Sync ===" | tee -a "$LOG_FILE"
+echo "Timestamp: $(date)" | tee -a "$LOG_FILE"
+
+# Find all user folders in bucket mount
+find "$SOURCE_BASE" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | while read -r username; do
+    echo "Processing user: $username" | tee -a "$LOG_FILE"
+
+    # Verify destination folder exists
+    if [ ! -d "$DEST_BASE/$username" ]; then
+        echo "Creating destination directory: $DEST_BASE/$username" | tee -a "$LOG_FILE"
+        mkdir -p "$DEST_BASE/$username"
+    fi
+
+    # Verify both are properly mounted
+    if ! mountpoint -q "$SOURCE_BASE/$username"; then
+        echo "Error: Bucket not mounted for $username" | tee -a "$LOG_FILE"
+        continue
+    fi
+
+    if ! mountpoint -q "$DEST_BASE/$username"; then
+        echo "Error: User folder not mounted for $username" | tee -a "$LOG_FILE"
+        continue
+    fi
+
+    # Perform the rsync
+    echo "Starting rsync..." | tee -a "$LOG_FILE"
+    rsync -avz "$SOURCE_BASE/$username/" "$DEST_BASE/$username/" | tee -a "$LOG_FILE"
+
+    # Verify sync
+    echo "Verification:" | tee -a "$LOG_FILE"
+    echo "Source file count: $(find "$SOURCE_BASE/$username" -type f | wc -l)" | tee -a "$LOG_FILE"
+    echo "Destination file count: $(find "$DEST_BASE/$username" -type f | wc -l)" | tee -a "$LOG_FILE"
+done
+
+echo "=== Sync Completed ===" | tee -a "$LOG_FILE"
+echo "Timestamp: $(date)" | tee -a "$LOG_FILE"
+root@krishidss-staging-ci-cd-server-1:/home/aipl2924/scripts_for_cs_user_bucket_mount#
