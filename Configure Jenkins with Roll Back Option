@@ -1,0 +1,748 @@
+Setup K8s Cluster Using Kubeadm
+=================================
+
+
+Run this in Master and Worker Nodes
+====================================
+
+1) Disable Swap using the below commands
+
+swapoff -a
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+2) Forwarding IPv4 and letting iptables see bridged traffic
+
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# sysctl params required by setup, params persist across reboots
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+
+# Apply sysctl params without reboot
+sudo sysctl --system
+
+# Verify that the br_netfilter, overlay modules are loaded by running the following commands:
+lsmod | grep br_netfilter
+lsmod | grep overlay
+
+# Verify that the net.bridge.bridge-nf-call-iptables, net.bridge.bridge-nf-call-ip6tables, and net.ipv4.ip_forward system variables are set to 1 in your sysctl config by running the following command:
+sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+
+
+3) Install container runtime
+
+curl -LO https://github.com/containerd/containerd/releases/download/v1.7.14/containerd-1.7.14-linux-amd64.tar.gz
+sudo tar Cxzvf /usr/local containerd-1.7.14-linux-amd64.tar.gz
+curl -LO https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+sudo mkdir -p /usr/local/lib/systemd/system/
+sudo mv containerd.service /usr/local/lib/systemd/system/
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+sudo systemctl daemon-reload
+sudo systemctl enable --now containerd
+
+# Check that containerd service is up and running
+systemctl status containerd
+
+4) Install runc
+
+curl -LO https://github.com/opencontainers/runc/releases/download/v1.1.12/runc.amd64
+sudo install -m 755 runc.amd64 /usr/local/sbin/runc
+
+5) Install cni plugin 
+
+curl -LO https://github.com/containernetworking/plugins/releases/download/v1.5.0/cni-plugins-linux-amd64-v1.5.0.tgz
+sudo mkdir -p /opt/cni/bin
+sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.5.0.tgz
+
+6) Install kubeadm, kubelet and kubectl
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl --allow-downgrades --allow-change-held-packages
+sudo apt-mark hold kubelet kubeadm kubectl
+
+kubeadm version
+kubelet --version
+kubectl version --client
+
+7) Configure crictl to work with containerd
+
+sudo crictl config runtime-endpoint unix:///var/run/containerd/containerd.sock
+
+
+Run this only on Master Node
+=================================
+8) Initialize control plane
+
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=10.160.0.28 --node-name master
+
+Note  -  Copy and paste somewhere, the token that is created using kubeadm init at last
+
+9) Prepare kubeconfig
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+10) Install calico
+
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/operator-crds.yaml
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/tigera-operator.yaml
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/custom-resources.yaml -O
+kubectl create -f custom-resources.yaml
+
+
+
+Run this only on Worker Nodes
+=============================
+11) Run the command that was copied from Step 8 as - 
+
+kubeadm join 10.160.0.28:6443 --token hp0we7.luz10ulak1y6taa0 \
+        --discovery-token-ca-cert-hash sha256:c4a96901732734a0f1113d9b3f2708217adf43815552673a606342e14cedd8cb
+
+If forgot to copy then run "kubeadm  token create --print-join-command"
+
+
+To install Docker on Ubuntu Server
+==================================
+sudo su
+apt install docker.io -y 
+
+To install Jenkins in the Ubuntu Server
+=======================================
+docker run -u 0 --privileged --name jenkins -it -d -p 8080:8080 -p 50000:50000 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v $(which docker):/usr/bin/docker \
+-v /home/jenkins_home:/var/jenkins_home \
+jenkins/jenkins:latest
+
+To setup Docker Registry Follow the below link
+=================================================
+https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-docker-registry-on-ubuntu-22-04
+
+
+
+
+docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+997cefe7995243b0bacb6fd1887439b6
+
+
+docker run -d -p 8085:8080 --restart always -p 50000:50000 --name=jenkins-master \
+  --mount source=jenkins-log,target=/var/log/jenkins \
+  --mount source=jenkins-data,target=/var/jenkins_home \
+  -v $(which docker):/usr/bin/docker \
+  jenkins
+
+
+Jenkins Pipeline  
+=================
+Store the Kubeconfig file in Credentials as a Secret text
+
+
+pipeline {
+    agent any
+
+    stages {
+        // Stage 1: Clone the public GitHub repo (no credentials needed)
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/bhaskarmehta/CDUsingArgoCD.git', branch: 'main'
+            }
+        }
+
+        // Stage 2: Deploy Kubernetes manifests
+        stage('Deploy') {
+            steps {
+                withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
+                    sh '''
+                    mkdir -p ~/.kube
+                    cp "$KUBECONFIG" ~/.kube/config
+
+                    # Apply all manifests in the Deployments/ directory
+                    kubectl apply -f Deployments/
+
+                    # Verify
+                    echo "----- Pods -----"
+                    kubectl get pods
+                    echo "----- Deployments -----"
+                    kubectl get deployments
+                    '''
+                }
+            }
+        }
+    }
+}
+
+
+
+Dockerfile for Jenkins
+-----------------------
+
+2/Jenkins# cat Dockerfile 
+# Use the official Jenkins base image
+FROM jenkins/jenkins
+
+# Switch to root to install additional packages
+USER root
+
+# Install Python, necessary for Google Cloud
+RUN apt-get update && apt-get install -y python3 python3-pip && \
+    ln -s /usr/bin/python3 /usr/bin/python
+
+# Install Google Cloud SDK
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
+    apt-get update && apt-get install -y google-cloud-sdk
+
+# Install kubectl
+RUN apt-get install -y kubectl
+
+# Install gke-gcloud-auth-plugin
+RUN apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+
+# Install Helm
+RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+root@jenkins-server:/home/bhaskarmehta12/Jenkins# 
+
+==================================================
+
+Set Correct IAM Permissions for VMs(Attach these role with VM Service Account)(https://chatgpt.com/c/68413467-c60c-8013-bb7b-b66c91d51ecc)
+✅ Required Roles:
+    roles/compute.storageAdmin
+
+    roles/compute.instanceAdmin.v1
+
+    roles/iam.serviceAccountUser
+
+Install GCP CSI Driver Installation (Download the Release Version  - https://github.com/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver/releases/tag/v1.19.0)
+-------------------------------------
+git clone https://github.com/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver.git
+cd gcp-compute-persistent-disk-csi-driver/deploy/kubernetes
+kubectl create ns gce-pd-csi-driver
+kubectl apply -k overlays/noauth
+
+
+Add Required OAuth Scopes to Your VM(Worker Node)
+=================================================
+Fix via Console (Recommended)
+Go to Google Cloud Console → Compute Engine → VM instances
+
+Click on your k8s-worker node
+
+Click “Stop” the instance
+
+Click “Edit”
+
+Scroll to “Access scopes”
+
+Set to: Allow full access to all Cloud APIs
+
+Click Save, then Start the instance again
+
+After Restarting VM
+-----------------------
+curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes
+
+Output should be - https://www.googleapis.com/auth/cloud-platform
+
+Restart kubelet on the worker node
+-------------------------------------
+sudo systemctl restart kubelet
+
+Now run - kubectl get csinodes k8s-worker -o yaml | grep pd.csi.storage.gke.io on Master Node
+Output should be - name: pd.csi.storage.gke.io
+
+
+
+
+pv.yaml
+=======
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: pd.csi.storage.gke.io
+    volumeHandle: projects/YOUR_PROJECT_ID/zones/YOUR_ZONE/disks/pg-disk
+    fsType: ext4
+
+
+pvc.yaml
+=========
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+
+Deployment.yaml
+==================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "postgres"  # Change this!
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_DB
+          value: "postgres"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /data/postgresql
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+             
+
+psql -h localhost -U ps_user --password -p 5432             
+
+
+
+=================================================
+ingress.yaml  - use "kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission" if get error when applying
+-----------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: bhaskarmehta.in
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-jenkins
+            port:
+              number: 8080
+      - path: /nginx
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
+
+=============================
+Deployment.yaml
+-----------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+   #   nodePort: 30007
+  #type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+  labels:
+    app: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-jenkins
+spec:
+  selector:
+    app: jenkins
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+-----------------------
+haproxy.cfg
+-----------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    maxconn     20000
+    log         /dev/log local0 info
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    log                     global
+    mode                    http
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option redispatch
+    option forwardfor       except 127.0.0.0/8
+    retries                 3
+    maxconn                 20000
+    timeout http-request    10000ms
+    timeout http-keep-alive 10000ms
+    timeout check           10000ms
+    timeout connect         40000ms
+    timeout client          300000ms
+    timeout server          300000ms
+    timeout queue           50000ms
+
+# Enable HAProxy stats
+listen stats
+    bind :9000
+    stats uri /stats
+    stats refresh 10000ms
+
+# Kube API Server
+frontend k8s_api_frontend
+    bind :6444
+    default_backend k8s_api_backend
+    mode tcp
+
+backend k8s_api_backend
+    mode tcp
+    balance source
+    server      vu-master-1 172.31.82.34:6443 check
+
+# Ingress - layer 4 tcp mode for each. Ingress Controller will handle layer 7.
+frontend http_ingress_frontend
+    bind :80
+    default_backend http_ingress_backend
+    mode tcp
+
+backend http_ingress_backend
+    balance source
+    mode tcp
+    server      vu-master-1 172.31.82.34:30001 check
+    server      vu-worker-1 172.31.82.115:30001 check
+
+
+frontend https_ingress_frontend
+    bind *:443
+    default_backend https_ingress_backend
+    mode tcp
+
+backend https_ingress_backend
+    mode tcp
+    balance source
+    server      vu-master-1 172.31.82.34:30002 check
+    server      vu-worker-1 172.31.82.115:30002 check
+
+
+
+
+Add Helm Nginx helm Chart 
+-------------------------------------
+helm repo add ingress-nginx  https://kubernetes.github.io/ingress-nginx
+
+Install Helm  -  helm install ingress-nginx ingress-nginx/ingress-nginx --version 4.11.1 --set controller.config.allowSnippetAnnotations=true --set controller.config.allow-snippet-annotations=true
+
+To configure JFrog with Jenkins
+-------------------------------------
+
+1) Install artifactory plugin into Jenkins
+2) Go to manage Jenkins -> Configure System -> Artifactory(JFrog)
+
+
+JFrog
+-----------------------
+pipeline {
+    agent any
+    tools {
+        maven '3.6.3'
+    }
+
+    stages {
+        stage('Git Clone') {
+            steps {
+                git branch: 'main', url: 'https://github.com/bhaskarmehta/java-test.git'
+            }
+        }
+        stage('Clean and Install') {
+            steps {
+                 sh 'mvn clean install'
+            }
+        }
+        stage('Package') {
+            steps {
+               sh 'mvn package'
+            }
+        } 
+        stage('Upload Stage'){
+  steps{
+     rtUpload (
+            serverId: 'jfrog',
+            spec: '''{
+          "files": [
+            {
+              "pattern": "target/*.jar",
+              "target": "libs-snapshot-local/com/amnex/test-application/0.0.1-SNAPSHOT/"
+            }
+         ]
+    }''',
+)
+  }
+}
+    
+    }
+}
+
+
+
+=======================================
+CD Jenkins File for RollBack
+-------------------------------------
+properties([
+    parameters([
+        choice(
+            name: 'ACTION',
+            choices: ['Deploy', 'Rollback'],
+            description: 'Choose action'
+        )
+    ])
+])
+
+pipeline {
+    agent any
+    
+    environment {
+        REGISTRY = "10.11.0.25:5000"
+        IMAGE_NAME = "nginx"
+    }
+
+    stages {
+        stage('Initialize') {
+            steps {
+                script {
+                    // Fetch available versions securely
+                    withCredentials([usernamePassword(
+                        credentialsId: 'docker_registry_username_password',
+                        usernameVariable: 'REGISTRY_USER',
+                        passwordVariable: 'REGISTRY_PASS'
+                    )]) {
+                        // Create temporary script with safe parsing
+                        writeFile file: 'get_tags.sh', text: '''#!/bin/sh
+                            response=$(curl -s -u $1:$2 http://$3/v2/$4/tags/list)
+                            echo "$response" | grep -o '"tags":\\[[^]]*\\]' | cut -d'[' -f2 | cut -d']' -f1 | tr -d '"' | tr ',' '\\n'
+                        '''
+                        
+                        sh 'chmod +x get_tags.sh'
+                        
+                        // Execute securely using array for arguments
+                        def tags = sh(
+                            script: """
+                                ./get_tags.sh "$REGISTRY_USER" "$REGISTRY_PASS" "$REGISTRY" "$IMAGE_NAME"
+                            """,
+                            returnStdout: true
+                        ).trim()
+                        
+                        // Handle empty response
+                        if (tags == '') {
+                            error('No tags found in registry or failed to parse response')
+                        }
+                        
+                        // Convert to list and sort numerically
+                        def tagsList = tags.split('\\n').toList()
+                        tagsList.sort { a, b -> b.toInteger() <=> a.toInteger() }
+                        env.AVAILABLE_VERSIONS = tagsList.join(',')
+                    }
+                }
+            }
+        }
+        
+        stage('Select Version') {
+            when {
+                expression { params.ACTION == 'Rollback' }
+            }
+            steps {
+                script {
+                    def versions = env.AVAILABLE_VERSIONS.split(',') as List
+                    if (versions.isEmpty()) {
+                        error('No versions available for rollback')
+                    }
+                    
+                    env.SELECTED_VERSION = input(
+                        message: 'Select version to rollback to', 
+                        parameters: [
+                            choice(
+                                name: 'VERSION',
+                                choices: versions,
+                                description: 'Available versions'
+                            )
+                        ]
+                    )
+                }
+            }
+        }
+        
+        stage('Deploy/Rollback') {
+            steps {
+                script {
+                    def imageToUse = (params.ACTION == 'Deploy') ? 
+                        "${REGISTRY}/${IMAGE_NAME}:${env.AVAILABLE_VERSIONS.split(',')[0]}" :
+                        "${REGISTRY}/${IMAGE_NAME}:${env.SELECTED_VERSION}"
+                    
+                    echo "Deploying image: ${imageToUse}"
+                    sh """
+                        kubectl set image deployment/nginx-deployment nginx=${imageToUse} -n your-namespace
+                        kubectl rollout status deployment/nginx-deployment -n your-namespace --timeout=300s
+                    """
+                }
+            }
+        }
+    }
+}
+
+
+-------------------------------------
+GeoServer 
+-----------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geoserver
+  labels:
+    app: geoserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geoserver
+  template:
+    metadata:
+      labels:
+        app: geoserver
+    spec:
+      containers:
+      - name: geoserver
+        image: docker.osgeo.org/geoserver:2.28.x
+        env:
+        - name: GEOSERVER_ADMIN_PASSWORD
+          value: "your_secure_password"
+        - name: GEOSERVER_ADMIN_USER
+          value: "admin"
+        - name: SAMPLE_DATA
+          value: "false"
+        - name: INITIAL_MEMORY
+          value: "2G"
+        - name: MAXIMUM_MEMORY
+          value: "4G"
+        ports:
+        - containerPort: 8080
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geoserver
+spec:
+  selector:
+    app: geoserver
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: NodePort
+
