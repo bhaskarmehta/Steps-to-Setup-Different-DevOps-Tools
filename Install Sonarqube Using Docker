@@ -30,6 +30,7 @@ sudo nano /etc/postgresql/12/main/postgresql.conf
 
 Create a password for user postgres 
 ------------------------------------
+sudo -u postgres psql;
 ALTER USER postgres WITH PASSWORD 'postgres';
 
 
