@@ -1,0 +1,16 @@
+Install Trivy in Ubuntu Server or Inside a Jenkins Server
+
+sudo apt-get install wget apt-transport-https gnupg lsb-release
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+sudo apt-get update
+sudo apt-get install trivy
+
+
+Now to Get the report in HTML format
+========================================
+mkdir -p contrib
+curl -o contrib/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+
+
+And then report will be generated as - trivy image --format template --template "@contrib/html.tpl" -o report.html python:3.4-alpine
