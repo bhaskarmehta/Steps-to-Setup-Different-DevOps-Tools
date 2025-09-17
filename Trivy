@@ -14,3 +14,35 @@ curl -o contrib/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/ma
 
 
 And then report will be generated as - trivy image --format template --template "@contrib/html.tpl" -o report.html python:3.4-alpine
+
+
+
+OWASP vs Trivy
+======================
+Data Sources
+-----------
+Trivy = GHSA (GitHub Advisory Database) + NVD + distro security feeds(Red Hat, Debian, Alpine - Operating-system package advisories maintained by vendors).
+
+OWASP = Mostly NVD (CPE-based- Common Platform Enumeration).
+
+Matching Approach
+---------------
+Trivy = Matches exact package coordinates, more accurate.
+-> If Project has spring-core-5.3.30.jar.
+-> If a CVE only affects spring-core < 5.3.18, Trivy won’t flag your 5.3.30 version.
+
+OWASP = Uses CPE names, so sometimes matches too broadly (false positives).
+-> False Positive - A false positive is when the scanner reports a vulnerability that doesn’t actually affect your project.
+-> OWASP mainly uses CPE (Common Platform Enumeration) strings to match libraries against vulnerabilities in the NVD (National Vulnerability Database).
+
+Example:
+  Project has spring-core-5.3.30.jar.
+  NVD lists a vulnerability for spring-core-5.3.0.
+  Dependency-Check may wrongly assume all 5.3.x versions are affected → false positive.
+
+Update Frequency
+-----------------
+Trivy DB updates every 6 hours.
+
+OWASP relies on NVD feeds (sometimes slower to reflect new CVEs).
+
