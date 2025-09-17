@@ -46,3 +46,27 @@ Trivy DB updates every 6 hours.
 
 OWASP relies on NVD feeds (sometimes slower to reflect new CVEs).
 
+
+
+
+Veracode Alternative
+---------------------
+
+Veracode Module                   Open Source Alternative          How it Complements Trivy
+----------------                   ------------------------        ------------------------
+SCA (Static Code Analysis)           Trivy                           Use trivy fs /path/to/your/code to scan for vulnerable dependencies. This directly replaces Veracode SCA.
+Container Security                   Trivy                           Use trivy image your-image:tag to scan container images. This directly replaces Veracode's container scanning.
+SAST - (for App Code)-               Semgrep or SonarQube            Use Sonarqube to scan your custom application code for security flaws. This fills the biggest gap that Trivy leaves.
+(Static Application Security Testing)
+SAST (for IaC)                       Trivy                           Use trivy config /path/to/your/iac to scan Kubernetes, Terraform, etc. files. This is part of Veracode's offering.
+DAST                                 OWASP ZAP                       Use ZAP to run automated scans against your running web applications. This replaces Veracode DAST.
+
+
+SAST stands for Static Application Security Testing - 
+------------------------------------------------------
+It is a type of security testing that analyzes an application's source code, bytecode, or binary code for security vulnerabilities without actually executing the program. It examines the application 
+from the inside-out while it is "at rest."
+
+DAST stands for Dynamic Application Security Testing - 
+------------------------------------------------------
+It's a type of security testing where you analyze a running, live application from the outside-in by simulating attacks against it. Its primary goal is to find vulnerabilities that an external hacker could exploit.
