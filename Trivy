@@ -15,7 +15,22 @@ curl -o contrib/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/ma
 
 And then report will be generated as - trivy image --format template --template "@contrib/html.tpl" -o report.html python:3.4-alpine
 
-
+And In Jenkinsfile we can use as
+stage('Filesystem Scan with Trivy') {
+            steps {
+                script {
+                    // Scan filesystem for vulnerabilities
+                    sh '''
+                        trivy fs \
+                            --severity HIGH,CRITICAL \
+                            --format template \
+                            --template "@contrib/html.tpl" \  (or) --template "@/contrib/html.tpl" -  If contrib/html.tpl is at root (/) location
+                            -o trivy-fs-report.html \
+                            .
+                    '''
+                }
+            }
+        }
 
 OWASP vs Trivy
 ======================
